@@ -1,0 +1,316 @@
+/* ============================================
+   DOM Platform — Workspace Panel
+   workspace.css
+   ============================================ */
+
+#workspace-panel {
+  flex: 1;
+  height: 100%;
+  background: var(--bg-base);
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ---- Workspace Tab Bar ---- */
+.workspace-tabs {
+  height: 40px;
+  min-height: 40px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  gap: 0;
+}
+
+.workspace-tab {
+  height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: var(--font-sans);
+}
+
+.workspace-tab:hover {
+  color: var(--text-primary);
+}
+
+.workspace-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--blue-500);
+}
+
+/* ---- Workspace Content Areas ---- */
+.workspace-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.workspace-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  flex-direction: column;
+}
+
+.workspace-view.active {
+  display: flex;
+}
+
+/* ---- Building State ---- */
+.workspace-building {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px;
+}
+
+.building-logo {
+  width: 72px;
+  height: 72px;
+  animation: logo-pulse 3s ease infinite;
+}
+
+.building-logo svg {
+  width: 100%;
+  height: 100%;
+}
+
+.building-status {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.building-step {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ---- Progress Bar ---- */
+.progress-bar-container {
+  width: 320px;
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  width: 45%;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(90deg, var(--blue-500), var(--blue-300), var(--blue-500));
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ---- File Tree ---- */
+.file-tree {
+  width: 400px;
+  max-width: 100%;
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.file-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.8;
+  animation: fadeInUp 150ms ease forwards;
+}
+
+.file-tree-item .tree-indent {
+  color: var(--text-muted);
+  white-space: pre;
+  user-select: none;
+}
+
+.file-tree-item .tree-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.file-tree-item .tree-name {
+  color: var(--text-secondary);
+}
+
+.file-tree-item .tree-status {
+  margin-left: auto;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.file-tree-item .tree-status.done {
+  color: var(--success);
+}
+
+.file-tree-item .tree-status.in-progress {
+  color: var(--warning);
+}
+
+.file-tree-item .tree-status.pending {
+  color: var(--text-muted);
+}
+
+.file-tree-item .spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border-default);
+  border-top-color: var(--blue-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ---- Preview State ---- */
+.workspace-preview {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.workspace-preview iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+
+.workspace-preview .deploy-floating-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
+/* ---- Rule Files Viewer ---- */
+.workspace-rules {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rule-file-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.rule-file-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rule-file-header:hover {
+  background: var(--bg-overlay);
+}
+
+.rule-file-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-accent-blue);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rule-file-toggle {
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: transform var(--transition-fast);
+}
+
+.rule-file-toggle.expanded {
+  transform: rotate(180deg);
+}
+
+.rule-file-content {
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  display: none;
+}
+
+.rule-file-content.expanded {
+  display: block;
+}
+
+/* ---- Frontend Code Viewer ---- */
+.workspace-code {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.code-block {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.code-block-filename {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-accent-blue);
+}
+
+.code-block-body {
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}

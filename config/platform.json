@@ -1,0 +1,31 @@
+{
+  "version": "0.1.0",
+  "primary_agent": {
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "api_key": ""
+  },
+  "hardware_model": {
+    "name": "LLM4Binary/llm4decompile-6.7b-v2",
+    "path": "./models/llm4decompile-6.7b",
+    "downloaded": false
+  },
+  "dom_base_model": {
+    "name": "microsoft/Phi-3-mini-4k-instruct",
+    "path": "./models/phi3-mini"
+  },
+  "training": {
+    "examples": 100,
+    "epochs": 3,
+    "batch_size": 2,
+    "gradient_accumulation": 4,
+    "learning_rate": 0.0002
+  },
+  "servers": {
+    "agent_port": 8080,
+    "dom_port": 5000
+  },
+  "deployment": {
+    "mode": "local"
+  }
+}

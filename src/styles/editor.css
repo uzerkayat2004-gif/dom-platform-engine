@@ -1,0 +1,328 @@
+/* ============================================
+   DOM Platform — Editor / Welcome Center
+   editor.css
+   ============================================ */
+
+/* ---- Welcome Center (State 1) ---- */
+#welcome-center {
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 40px;
+  position: relative;
+}
+
+/* ---- Brand Mark ---- */
+.welcome-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.welcome-logo {
+  width: 64px;
+  height: 64px;
+}
+
+.welcome-logo svg {
+  width: 100%;
+  height: 100%;
+}
+
+.welcome-title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.welcome-subtitle {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 16px;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- Tagline ---- */
+.welcome-tagline {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.welcome-tagline p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+/* ---- Input Area ---- */
+.welcome-input-container {
+  width: 100%;
+  max-width: 640px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 20px 24px;
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.welcome-input-container:focus-within {
+  border-color: var(--border-blue);
+  box-shadow: var(--shadow-blue);
+}
+
+.welcome-textarea {
+  width: 100%;
+  min-height: 80px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+}
+
+.welcome-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.welcome-input-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.welcome-build-btn {
+  background: var(--gradient-blue);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.welcome-build-btn:hover {
+  box-shadow: var(--shadow-blue);
+  transform: scale(1.02);
+  background: var(--gradient-red);
+  box-shadow: var(--shadow-red);
+}
+
+.welcome-build-btn:active {
+  transform: scale(0.97);
+}
+
+/* ---- Quick Start Suggestions ---- */
+.welcome-suggestions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.suggestion-chip {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 8px 16px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.suggestion-chip:hover {
+  border-color: var(--border-blue);
+  color: var(--text-accent-blue);
+}
+
+/* ---- Settings Panel ---- */
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.settings-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-close-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.settings-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-overlay);
+}
+
+.settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-section-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-field-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.settings-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-input {
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.settings-input:focus {
+  border-color: var(--border-blue);
+}
+
+.settings-btn-outline {
+  padding: 8px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-blue);
+  border-radius: var(--radius-sm);
+  color: var(--text-accent-blue);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.settings-btn-outline:hover {
+  background: rgba(61, 90, 254, 0.1);
+  box-shadow: 0 0 12px rgba(61, 90, 254, 0.15);
+}
+
+.settings-btn-save {
+  padding: 8px 14px;
+  background: var(--gradient-blue);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.settings-btn-save:hover {
+  box-shadow: 0 0 12px rgba(61, 90, 254, 0.3);
+}
+
+/* ---- Hardware Model Badge ---- */
+.settings-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.settings-badge-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---- Slider with Value ---- */
+.settings-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-slider-value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-accent-blue);
+  min-width: 32px;
+  text-align: right;
+}

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOM Platform</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/chat.css" />
+  <link rel="stylesheet" href="styles/workspace.css" />
+  <link rel="stylesheet" href="styles/glassbox.css" />
+  <link rel="stylesheet" href="styles/editor.css" />
+</head>
+<body>
+  <div id="app" class="state-welcome">
+
+    <!-- ======== CUSTOM TITLEBAR ======== -->
+    <div id="titlebar" data-tauri-drag-region>
+      <div class="titlebar-drag-region" data-tauri-drag-region>
+        <div class="titlebar-brand">
+          <!-- Logo: Geometric diamond in brand gradient -->
+          <div class="titlebar-logo">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="brand-grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#3D5AFE"/>
+                  <stop offset="50%" stop-color="#7B2FFF"/>
+                  <stop offset="100%" stop-color="#FF1744"/>
+                </linearGradient>
+              </defs>
+              <path d="M20 2L38 20L20 38L2 20L20 2Z" fill="url(#brand-grad)" opacity="0.9"/>
+              <path d="M20 8L32 20L20 32L8 20L20 8Z" fill="url(#brand-grad)" opacity="0.4"/>
+              <circle cx="20" cy="20" r="4" fill="white" opacity="0.9"/>
+            </svg>
+          </div>
+          <div class="titlebar-wordmark">
+            <span class="titlebar-wordmark-dom">DOM</span>
+            <span class="titlebar-wordmark-platform">Platform</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Project Name (visible in active state) -->
+      <span id="titlebar-project-name" class="titlebar-center">Restaurant POS</span>
+
+      <!-- Right: Glass Box icon + Window Controls -->
+      <div class="titlebar-actions">
+        <button id="btn-glassbox-toggle" class="titlebar-icon-btn" title="Glass Box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span class="notification-badge" id="glassbox-badge"></span>
+        </button>
+
+        <div class="window-controls">
+          <button class="window-control-btn minimize" id="btn-minimize" title="Minimize"></button>
+          <button class="window-control-btn maximize" id="btn-maximize" title="Maximize"></button>
+          <button class="window-control-btn close" id="btn-close" title="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== MAIN CONTENT AREA ======== -->
+    <div id="main-content">
+
+      <!-- ======== SIDEBAR ======== -->
+      <div id="sidebar">
+        <!-- New Generation Button -->
+        <button class="sidebar-new-btn" id="btn-new-generation">
+          <span class="sidebar-new-btn-icon">✦</span>
+          <span class="sidebar-new-btn-text">New Generation</span>
+        </button>
+
+        <!-- Recent Work Section -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">RECENT WORK</div>
+
+          <div class="sidebar-project active" data-project="restaurant-pos">
+            <div class="sidebar-project-dot"></div>
+            <div class="sidebar-project-info">
+              <span class="sidebar-project-name">Restaurant POS</span>
+              <span class="sidebar-project-time">2 hours ago</span>
+            </div>
+          </div>
+
+          <div class="sidebar-project" data-project="portfolio">
+            <div class="sidebar-project-dot"></div>
+            <div class="sidebar-project-info">
+              <span class="sidebar-project-name">Portfolio Template</span>
+              <span class="sidebar-project-time">Yesterday</span>
+            </div>
+          </div>
+
+          <div class="sidebar-project" data-project="saas">
+            <div class="sidebar-project-dot"></div>
+            <div class="sidebar-project-info">
+              <span class="sidebar-project-name">SaaS Dashboard</span>
+              <span class="sidebar-project-time">3 days ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Section -->
+        <div class="sidebar-bottom">
+          <!-- Model Status -->
+          <div class="sidebar-model-status" id="btn-model-status">
+            <div class="model-status-dot connected"></div>
+            <span class="model-status-text">Groq Connected</span>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="sidebar-actions">
+            <button class="sidebar-action-btn" id="btn-settings" title="Settings">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+            <button class="sidebar-action-btn" id="btn-account" title="Account">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== WELCOME CENTER (State 1) ======== -->
+      <div id="welcome-center">
+        <div class="welcome-brand">
+          <div class="welcome-logo">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="brand-grad-lg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#3D5AFE"/>
+                  <stop offset="50%" stop-color="#7B2FFF"/>
+                  <stop offset="100%" stop-color="#FF1744"/>
+                </linearGradient>
+              </defs>
+              <path d="M20 2L38 20L20 38L2 20L20 2Z" fill="url(#brand-grad-lg)" opacity="0.9"/>
+              <path d="M20 8L32 20L20 32L8 20L20 8Z" fill="url(#brand-grad-lg)" opacity="0.4"/>
+              <circle cx="20" cy="20" r="4" fill="white" opacity="0.9"/>
+            </svg>
+          </div>
+          <h1 class="welcome-title">DOM Platform</h1>
+          <span class="welcome-subtitle">Vibe Coding</span>
+        </div>
+
+        <div class="welcome-tagline">
+          <p>Build any app in plain English.</p>
+          <p>Own your AI completely.</p>
+        </div>
+
+        <div class="welcome-input-container">
+          <textarea
+            class="welcome-textarea"
+            id="welcome-input"
+            placeholder="Describe the app you want to build..."
+            rows="3"
+          ></textarea>
+          <div class="welcome-input-actions">
+            <button class="welcome-build-btn" id="btn-build-it">
+              Build It
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="welcome-suggestions">
+          <button class="suggestion-chip" data-suggestion="restaurant">🍽️ Restaurant POS</button>
+          <button class="suggestion-chip" data-suggestion="hospital">🏥 Hospital System</button>
+          <button class="suggestion-chip" data-suggestion="retail">🏪 Retail Manager</button>
+          <button class="suggestion-chip" data-suggestion="school">🎓 School LMS</button>
+        </div>
+      </div>
+
+      <!-- ======== CHAT PANEL (State 2) ======== -->
+      <div id="chat-panel">
+        <div class="chat-header">
+          <button class="chat-header-back" id="btn-chat-back" title="Back to welcome">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"/>
+              <polyline points="12 19 5 12 12 5"/>
+            </svg>
+          </button>
+          <span class="chat-header-title" id="chat-project-title">Restaurant POS</span>
+          <button class="chat-header-menu" id="btn-chat-menu" title="Project options">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="5" r="1"/>
+              <circle cx="12" cy="12" r="1"/>
+              <circle cx="12" cy="19" r="1"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+          <!-- Messages rendered by JS -->
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typing-indicator" style="display: none; padding: 0 16px 8px;">
+          <span class="typing-indicator-label">DOM is thinking</span>
+          <div class="typing-dots">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <textarea
+              class="chat-input-field"
+              id="chat-input"
+              placeholder="Type your message..."
+              rows="1"
+            ></textarea>
+            <button class="chat-send-btn" id="btn-chat-send" title="Send">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== WORKSPACE PANEL (State 2) ======== -->
+      <div id="workspace-panel">
+        <!-- Tab Bar -->
+        <div class="workspace-tabs">
+          <button class="workspace-tab active" data-tab="building">Building</button>
+          <button class="workspace-tab" data-tab="preview">Preview</button>
+          <button class="workspace-tab" data-tab="rules">Rule Files</button>
+          <button class="workspace-tab" data-tab="code">Frontend Code</button>
+        </div>
+
+        <div class="workspace-content">
+          <!-- Building View -->
+          <div class="workspace-view active" id="view-building">
+            <div class="workspace-building">
+              <div class="building-logo">
+                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="brand-grad-build" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stop-color="#3D5AFE"/>
+                      <stop offset="50%" stop-color="#7B2FFF"/>
+                      <stop offset="100%" stop-color="#FF1744"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M20 2L38 20L20 38L2 20L20 2Z" fill="url(#brand-grad-build)" opacity="0.9"/>
+                  <path d="M20 8L32 20L20 32L8 20L20 8Z" fill="url(#brand-grad-build)" opacity="0.4"/>
+                  <circle cx="20" cy="20" r="4" fill="white" opacity="0.9"/>
+                </svg>
+              </div>
+              <div class="building-status">Building your app...</div>
+              <div class="building-step" id="building-step-text">Generating rule files...</div>
+
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar-fill"></div>
+              </div>
+
+              <div class="file-tree" id="file-tree">
+                <div class="file-tree-item">
+                  <span class="tree-indent"></span>
+                  <span class="tree-icon">📁</span>
+                  <span class="tree-name">my-restaurant-pos/</span>
+                </div>
+                <div class="file-tree-item">
+                  <span class="tree-indent">  ├── </span>
+                  <span class="tree-icon">📄</span>
+                  <span class="tree-name">security.md</span>
+                  <span class="tree-status done">✅ Generated</span>
+                </div>
+                <div class="file-tree-item">
+                  <span class="tree-indent">  ├── </span>
+                  <span class="tree-icon">📄</span>
+                  <span class="tree-name">behavior.md</span>
+                  <span class="tree-status done">✅ Generated</span>
+                </div>
+                <div class="file-tree-item">
+                  <span class="tree-indent">  ├── </span>
+                  <span class="tree-icon">📄</span>
+                  <span class="tree-name">limits.md</span>
+                  <span class="tree-status done">✅ Generated</span>
+                </div>
+                <div class="file-tree-item">
+                  <span class="tree-indent">  ├── </span>
+                  <span class="tree-icon">📄</span>
+                  <span class="tree-name">skills.md</span>
+                  <span class="tree-status done">✅ Generated</span>
+                </div>
+                <div class="file-tree-item">
+                  <span class="tree-indent">  ├── </span>
+                  <span class="tree-icon">📁</span>
+                  <span class="tree-name">training/</span>
+                </div>
+                <div class="file-tree-item">
+                  <span class="tree-indent">  │   └── </span>
+                  <span class="tree-icon">📄</span>
+                  <span class="tree-name">dataset.jsonl</span>
+                  <span class="tree-status in-progress"><span class="spinner"></span> Generating...</span>
+                </div>
+                <div class="file-tree-item">
+                  <span class="tree-indent">  └── </span>
+                  <span class="tree-icon">📁</span>
+                  <span class="tree-name">model/</span>
+                  <span class="tree-status pending">(training in progress)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview View -->
+          <div class="workspace-view" id="view-preview">
+            <div class="workspace-preview">
+              <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;">
+                <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.3;">
+                  <path d="M20 2L38 20L20 38L2 20L20 2Z" fill="#3D5AFE"/>
+                </svg>
+                <span style="color:var(--text-muted);font-size:14px;">Preview will appear here when your app is built</span>
+              </div>
+              <button class="btn btn-danger deploy-floating-btn" id="btn-deploy">Deploy App</button>
+            </div>
+          </div>
+
+          <!-- Rules View -->
+          <div class="workspace-view" id="view-rules">
+            <div class="workspace-rules">
+              <div class="rule-file-card">
+                <div class="rule-file-header" data-rule="security">
+                  <span class="rule-file-title">🔒 security.md</span>
+                  <span class="rule-file-toggle">▼</span>
+                </div>
+                <div class="rule-file-content">Only authenticated staff can place orders.
+Only managers can approve refunds above the set limit.
+No customer data leaves this device.
+Maximum three failed login attempts then lockout.
+All payment data is encrypted at rest.
+Session timeout after 15 minutes of inactivity.</div>
+              </div>
+              <div class="rule-file-card">
+                <div class="rule-file-header" data-rule="behavior">
+                  <span class="rule-file-title">⚙️ behavior.md</span>
+                  <span class="rule-file-toggle">▼</span>
+                </div>
+                <div class="rule-file-content">Always confirm before deleting any item.
+Always show price before processing payment.
+Never process the same order twice.
+Always notify the kitchen within 30 seconds of order placement.
+Display order summary before final confirmation.
+Auto-save all changes every 60 seconds.</div>
+              </div>
+              <div class="rule-file-card">
+                <div class="rule-file-header" data-rule="limits">
+                  <span class="rule-file-title">🚫 limits.md</span>
+                  <span class="rule-file-toggle">▼</span>
+                </div>
+                <div class="rule-file-content">Maximum single transaction value: ₹50,000.
+Maximum discount without manager approval: 30%.
+Operating hours: as set by owner.
+Maximum items per order: 50.
+Maximum concurrent active orders: 100.</div>
+              </div>
+              <div class="rule-file-card">
+                <div class="rule-file-header" data-rule="skills">
+                  <span class="rule-file-title">✅ skills.md</span>
+                  <span class="rule-file-toggle">▼</span>
+                </div>
+                <div class="rule-file-content">Process orders and send to kitchen.
+Manage menu items and pricing.
+Handle table management and reservations.
+Process payments via connected payment providers.
+Generate daily and weekly sales reports.
+Manage staff accounts and access levels.
+Track inventory and alert on low stock.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Code View -->
+          <div class="workspace-view" id="view-code">
+            <div class="workspace-code">
+              <div class="code-block">
+                <div class="code-block-header">
+                  <span class="code-block-filename">index.html</span>
+                </div>
+                <div class="code-block-body">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Restaurant POS&lt;/title&gt;
+  &lt;link rel="stylesheet" href="styles.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id="app"&gt;
+    &lt;!-- Generated by DOM Platform --&gt;
+    &lt;header class="pos-header"&gt;
+      &lt;h1&gt;Restaurant POS&lt;/h1&gt;
+    &lt;/header&gt;
+    &lt;main class="pos-main"&gt;
+      &lt;!-- All buttons send fetch to DOM server --&gt;
+    &lt;/main&gt;
+  &lt;/div&gt;
+  &lt;script&gt;
+    // Every button sends plain English to DOM server
+    async function domAction(instruction) {
+      const res = await fetch('http://localhost:5000/process', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({instruction})
+      });
+      return res.json();
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-content -->
+
+    <!-- ======== GLASS BOX DRAWER ======== -->
+    <div id="glassbox-drawer">
+      <div class="glassbox-header">
+        <div class="glassbox-header-info">
+          <span class="glassbox-title">GLASS BOX</span>
+          <span class="glassbox-subtitle">Real-Time AI Actions</span>
+        </div>
+        <div class="glassbox-status-dot active"></div>
+      </div>
+
+      <div class="glassbox-log" id="glassbox-log">
+        <!-- Sample entries -->
+        <div class="glassbox-entry blocked flash">
+          <span class="entry-time">[11:24:45]</span>
+          <span class="entry-icon">🔴</span>
+          <span class="entry-type">BLOCKED</span>
+          <span class="entry-message">Item price Rs.15000 exceeds limit</span>
+        </div>
+        <div class="glassbox-entry passed">
+          <span class="entry-time">[11:23:56]</span>
+          <span class="entry-icon">✅</span>
+          <span class="entry-type">PASSED</span>
+          <span class="entry-message">Rule check: payment within limits</span>
+        </div>
+        <div class="glassbox-entry assembly">
+          <span class="entry-time">[11:23:54]</span>
+          <span class="entry-icon">⚙️</span>
+          <span class="entry-type">ASSEMBLY</span>
+          <span class="entry-message">DOM generating x86 instructions</span>
+        </div>
+        <div class="glassbox-entry order">
+          <span class="entry-time">[11:23:54]</span>
+          <span class="entry-icon">📋</span>
+          <span class="entry-type">ORDER</span>
+          <span class="entry-message">Butter Chicken added — Rs.350</span>
+        </div>
+        <div class="glassbox-entry system">
+          <span class="entry-time">[11:22:50]</span>
+          <span class="entry-icon">🔧</span>
+          <span class="entry-type">SYSTEM</span>
+          <span class="entry-message">Restaurant DOM loaded</span>
+        </div>
+      </div>
+
+      <div class="glassbox-stats">
+        <span class="glassbox-stat">12 actions logged</span>
+        <span class="glassbox-stat blocked-count">2 blocked</span>
+        <span class="glassbox-stat passed-count">10 passed</span>
+      </div>
+    </div>
+
+    <!-- ======== SETTINGS PANEL ======== -->
+    <div id="settings-overlay"></div>
+    <div id="settings-panel">
+      <div class="settings-header">
+        <span class="settings-title">Settings</span>
+        <button class="settings-close-btn" id="btn-settings-close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="settings-body">
+        <!-- Section 1: Primary Agent Model -->
+        <div class="settings-section">
+          <div class="settings-section-label">Primary Agent</div>
+
+          <div class="settings-field">
+            <label class="settings-field-label">Model Provider</label>
+            <select id="settings-model-provider">
+              <option value="groq">Llama 3.3 70B (Groq)</option>
+              <option value="anthropic">Claude Sonnet (Anthropic)</option>
+              <option value="openai">GPT-4o (OpenAI)</option>
+              <option value="custom">Custom Model</option>
+            </select>
+          </div>
+
+          <div class="settings-field">
+            <label class="settings-field-label">API Key</label>
+            <div class="settings-field-row">
+              <input type="password" class="settings-input" id="settings-api-key" placeholder="Enter your API key..." value="●●●●●●●●●●●●●●●●●" />
+              <button class="settings-btn-outline" id="btn-test-key">Test</button>
+              <button class="settings-btn-save" id="btn-save-key">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Hardware Language Model -->
+        <div class="settings-section">
+          <div class="settings-section-label">Hardware Language Model</div>
+          <div class="settings-badge">LLM4Binary / llm4decompile-6.7b-v2</div>
+          <div class="settings-badge-status">
+            Status: Downloaded ✅ 4.08 GB
+          </div>
+        </div>
+
+        <!-- Section 3: DOM Training Settings -->
+        <div class="settings-section">
+          <div class="settings-section-label">DOM Training</div>
+
+          <div class="settings-field">
+            <label class="settings-field-label">Training Examples</label>
+            <div class="settings-slider-row">
+              <input type="range" id="settings-train-examples" min="50" max="200" value="100" />
+              <span class="settings-slider-value" id="val-train-examples">100</span>
+            </div>
+          </div>
+
+          <div class="settings-field">
+            <label class="settings-field-label">Training Epochs</label>
+            <div class="settings-slider-row">
+              <input type="range" id="settings-train-epochs" min="1" max="5" value="3" />
+              <span class="settings-slider-value" id="val-train-epochs">3</span>
+            </div>
+          </div>
+
+          <div class="settings-field">
+            <label class="settings-field-label">Base Model</label>
+            <select id="settings-base-model">
+              <option value="phi3">Phi-3 Mini 3.8B</option>
+              <option value="llama32">Llama 3.2 3B</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section 4: Deployment Settings -->
+        <div class="settings-section">
+          <div class="settings-section-label">Deployment</div>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="deploy-type" value="local" checked />
+              <span class="radio-dot"></span>
+              <span class="radio-label">Local Only (recommended for MVP)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="deploy-type" value="hybrid" />
+              <span class="radio-dot"></span>
+              <span class="radio-label">Hybrid (Cloudflare Tunnel)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="deploy-type" value="cloud" />
+              <span class="radio-dot"></span>
+              <span class="radio-label">Cloud Private (your own server)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section 5: Appearance -->
+        <div class="settings-section">
+          <div class="settings-section-label">Appearance</div>
+          <div class="toggle-switch" id="toggle-compact-mode">
+            <div class="toggle-track"></div>
+            <span class="toggle-label">Compact mode</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /app -->
+
+  <!-- Scripts -->
+  <script src="scripts/app.js"></script>
+  <script src="scripts/sidebar.js"></script>
+  <script src="scripts/chat.js"></script>
+  <script src="scripts/workspace.js"></script>
+  <script src="scripts/glassbox.js"></script>
+  <script src="scripts/editor.js"></script>
+  <script src="scripts/deploy.js"></script>
+  <script src="scripts/model-selector.js"></script>
+</body>
+</html>

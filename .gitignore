@@ -1,0 +1,28 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node/Tauri
+node_modules/
+dist/
+src-tauri/target/
+.DS_Store
+
+# DOM Platform
+projects/
+cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
