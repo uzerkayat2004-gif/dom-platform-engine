@@ -39,12 +39,12 @@ const Chat = {
     const text = input.value.trim();
     if (!text) return;
 
-    this.addUserMessage(text);
+    // Don't add user message here — sendChatMessage does it
     input.value = '';
     input.style.height = 'auto';
 
     // Send to backend via App
-    App.sendMessage(text);
+    App.sendChatMessage(text);
   },
 
   addUserMessage(text) {

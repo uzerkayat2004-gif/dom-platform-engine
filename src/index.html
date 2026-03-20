@@ -43,7 +43,7 @@
       </div>
 
       <!-- Center: Project Name (visible in active state) -->
-      <span id="titlebar-project-name" class="titlebar-center">Restaurant POS</span>
+      <span id="titlebar-project-name" class="titlebar-center">New Project</span>
 
       <!-- Right: Glass Box icon + Window Controls -->
       <div class="titlebar-actions">
@@ -77,29 +77,8 @@
         <!-- Recent Work Section -->
         <div class="sidebar-section">
           <div class="sidebar-section-label">RECENT WORK</div>
-
-          <div class="sidebar-project active" data-project="restaurant-pos">
-            <div class="sidebar-project-dot"></div>
-            <div class="sidebar-project-info">
-              <span class="sidebar-project-name">Restaurant POS</span>
-              <span class="sidebar-project-time">2 hours ago</span>
-            </div>
-          </div>
-
-          <div class="sidebar-project" data-project="portfolio">
-            <div class="sidebar-project-dot"></div>
-            <div class="sidebar-project-info">
-              <span class="sidebar-project-name">Portfolio Template</span>
-              <span class="sidebar-project-time">Yesterday</span>
-            </div>
-          </div>
-
-          <div class="sidebar-project" data-project="saas">
-            <div class="sidebar-project-dot"></div>
-            <div class="sidebar-project-info">
-              <span class="sidebar-project-name">SaaS Dashboard</span>
-              <span class="sidebar-project-time">3 days ago</span>
-            </div>
+          <div class="sidebar-section-content">
+            <!-- Populated by JS -->
           </div>
         </div>
 
@@ -190,7 +169,7 @@
               <polyline points="12 19 5 12 12 5"/>
             </svg>
           </button>
-          <span class="chat-header-title" id="chat-project-title">Restaurant POS</span>
+          <span class="chat-header-title" id="chat-project-title">New Project</span>
           <button class="chat-header-menu" id="btn-chat-menu" title="Project options">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="5" r="1"/>
@@ -268,52 +247,7 @@
               </div>
 
               <div class="file-tree" id="file-tree">
-                <div class="file-tree-item">
-                  <span class="tree-indent"></span>
-                  <span class="tree-icon">📁</span>
-                  <span class="tree-name">my-restaurant-pos/</span>
-                </div>
-                <div class="file-tree-item">
-                  <span class="tree-indent">  ├── </span>
-                  <span class="tree-icon">📄</span>
-                  <span class="tree-name">security.md</span>
-                  <span class="tree-status done">✅ Generated</span>
-                </div>
-                <div class="file-tree-item">
-                  <span class="tree-indent">  ├── </span>
-                  <span class="tree-icon">📄</span>
-                  <span class="tree-name">behavior.md</span>
-                  <span class="tree-status done">✅ Generated</span>
-                </div>
-                <div class="file-tree-item">
-                  <span class="tree-indent">  ├── </span>
-                  <span class="tree-icon">📄</span>
-                  <span class="tree-name">limits.md</span>
-                  <span class="tree-status done">✅ Generated</span>
-                </div>
-                <div class="file-tree-item">
-                  <span class="tree-indent">  ├── </span>
-                  <span class="tree-icon">📄</span>
-                  <span class="tree-name">skills.md</span>
-                  <span class="tree-status done">✅ Generated</span>
-                </div>
-                <div class="file-tree-item">
-                  <span class="tree-indent">  ├── </span>
-                  <span class="tree-icon">📁</span>
-                  <span class="tree-name">training/</span>
-                </div>
-                <div class="file-tree-item">
-                  <span class="tree-indent">  │   └── </span>
-                  <span class="tree-icon">📄</span>
-                  <span class="tree-name">dataset.jsonl</span>
-                  <span class="tree-status in-progress"><span class="spinner"></span> Generating...</span>
-                </div>
-                <div class="file-tree-item">
-                  <span class="tree-indent">  └── </span>
-                  <span class="tree-icon">📁</span>
-                  <span class="tree-name">model/</span>
-                  <span class="tree-status pending">(training in progress)</span>
-                </div>
+                <!-- Populated by JS depending on step -->
               </div>
             </div>
           </div>
@@ -333,96 +267,15 @@
 
           <!-- Rules View -->
           <div class="workspace-view" id="view-rules">
-            <div class="workspace-rules">
-              <div class="rule-file-card">
-                <div class="rule-file-header" data-rule="security">
-                  <span class="rule-file-title">🔒 security.md</span>
-                  <span class="rule-file-toggle">▼</span>
-                </div>
-                <div class="rule-file-content">Only authenticated staff can place orders.
-Only managers can approve refunds above the set limit.
-No customer data leaves this device.
-Maximum three failed login attempts then lockout.
-All payment data is encrypted at rest.
-Session timeout after 15 minutes of inactivity.</div>
-              </div>
-              <div class="rule-file-card">
-                <div class="rule-file-header" data-rule="behavior">
-                  <span class="rule-file-title">⚙️ behavior.md</span>
-                  <span class="rule-file-toggle">▼</span>
-                </div>
-                <div class="rule-file-content">Always confirm before deleting any item.
-Always show price before processing payment.
-Never process the same order twice.
-Always notify the kitchen within 30 seconds of order placement.
-Display order summary before final confirmation.
-Auto-save all changes every 60 seconds.</div>
-              </div>
-              <div class="rule-file-card">
-                <div class="rule-file-header" data-rule="limits">
-                  <span class="rule-file-title">🚫 limits.md</span>
-                  <span class="rule-file-toggle">▼</span>
-                </div>
-                <div class="rule-file-content">Maximum single transaction value: ₹50,000.
-Maximum discount without manager approval: 30%.
-Operating hours: as set by owner.
-Maximum items per order: 50.
-Maximum concurrent active orders: 100.</div>
-              </div>
-              <div class="rule-file-card">
-                <div class="rule-file-header" data-rule="skills">
-                  <span class="rule-file-title">✅ skills.md</span>
-                  <span class="rule-file-toggle">▼</span>
-                </div>
-                <div class="rule-file-content">Process orders and send to kitchen.
-Manage menu items and pricing.
-Handle table management and reservations.
-Process payments via connected payment providers.
-Generate daily and weekly sales reports.
-Manage staff accounts and access levels.
-Track inventory and alert on low stock.</div>
-              </div>
+            <div class="workspace-rules" id="workspace-rules-container">
+               <!-- Populated by JS -->
             </div>
           </div>
 
           <!-- Code View -->
           <div class="workspace-view" id="view-code">
-            <div class="workspace-code">
-              <div class="code-block">
-                <div class="code-block-header">
-                  <span class="code-block-filename">index.html</span>
-                </div>
-                <div class="code-block-body">&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-  &lt;meta charset="UTF-8"&gt;
-  &lt;title&gt;Restaurant POS&lt;/title&gt;
-  &lt;link rel="stylesheet" href="styles.css"&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;div id="app"&gt;
-    &lt;!-- Generated by DOM Platform --&gt;
-    &lt;header class="pos-header"&gt;
-      &lt;h1&gt;Restaurant POS&lt;/h1&gt;
-    &lt;/header&gt;
-    &lt;main class="pos-main"&gt;
-      &lt;!-- All buttons send fetch to DOM server --&gt;
-    &lt;/main&gt;
-  &lt;/div&gt;
-  &lt;script&gt;
-    // Every button sends plain English to DOM server
-    async function domAction(instruction) {
-      const res = await fetch('http://localhost:5000/process', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({instruction})
-      });
-      return res.json();
-    }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</div>
-              </div>
+            <div class="workspace-code" id="workspace-code-container">
+               <!-- Populated by JS -->
             </div>
           </div>
         </div>
@@ -441,43 +294,13 @@ Track inventory and alert on low stock.</div>
       </div>
 
       <div class="glassbox-log" id="glassbox-log">
-        <!-- Sample entries -->
-        <div class="glassbox-entry blocked flash">
-          <span class="entry-time">[11:24:45]</span>
-          <span class="entry-icon">🔴</span>
-          <span class="entry-type">BLOCKED</span>
-          <span class="entry-message">Item price Rs.15000 exceeds limit</span>
-        </div>
-        <div class="glassbox-entry passed">
-          <span class="entry-time">[11:23:56]</span>
-          <span class="entry-icon">✅</span>
-          <span class="entry-type">PASSED</span>
-          <span class="entry-message">Rule check: payment within limits</span>
-        </div>
-        <div class="glassbox-entry assembly">
-          <span class="entry-time">[11:23:54]</span>
-          <span class="entry-icon">⚙️</span>
-          <span class="entry-type">ASSEMBLY</span>
-          <span class="entry-message">DOM generating x86 instructions</span>
-        </div>
-        <div class="glassbox-entry order">
-          <span class="entry-time">[11:23:54]</span>
-          <span class="entry-icon">📋</span>
-          <span class="entry-type">ORDER</span>
-          <span class="entry-message">Butter Chicken added — Rs.350</span>
-        </div>
-        <div class="glassbox-entry system">
-          <span class="entry-time">[11:22:50]</span>
-          <span class="entry-icon">🔧</span>
-          <span class="entry-type">SYSTEM</span>
-          <span class="entry-message">Restaurant DOM loaded</span>
-        </div>
+        <!-- Live entries pushed by JS via WebSocket -->
       </div>
 
       <div class="glassbox-stats">
-        <span class="glassbox-stat">12 actions logged</span>
-        <span class="glassbox-stat blocked-count">2 blocked</span>
-        <span class="glassbox-stat passed-count">10 passed</span>
+        <span class="glassbox-stat" id="stat-total">0 actions logged</span>
+        <span class="glassbox-stat blocked-count" id="stat-blocked">0 blocked</span>
+        <span class="glassbox-stat passed-count" id="stat-passed">0 passed</span>
       </div>
     </div>
 
@@ -512,7 +335,7 @@ Track inventory and alert on low stock.</div>
           <div class="settings-field">
             <label class="settings-field-label">API Key</label>
             <div class="settings-field-row">
-              <input type="password" class="settings-input" id="settings-api-key" placeholder="Enter your API key..." value="●●●●●●●●●●●●●●●●●" />
+              <input type="password" class="settings-input" id="settings-api-key" placeholder="Enter your API key..." />
               <button class="settings-btn-outline" id="btn-test-key">Test</button>
               <button class="settings-btn-save" id="btn-save-key">Save</button>
             </div>

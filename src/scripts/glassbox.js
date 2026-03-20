@@ -4,9 +4,9 @@
  */
 
 const GlassBox = {
-  entryCount: 5,
-  blockedCount: 1,
-  passedCount: 4,
+  entryCount: 0,
+  blockedCount: 0,
+  passedCount: 0,
 
   init() {
     // Glass Box is pre-populated with sample entries in HTML

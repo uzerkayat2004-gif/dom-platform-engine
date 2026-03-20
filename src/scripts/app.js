@@ -296,7 +296,7 @@ const App = {
       const res = await fetch(`${this.apiBase}/project/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.replace(/\\s+/g, '-').toLowerCase(), description })
+        body: JSON.stringify({ name: name.replace(/\s+/g, '-').toLowerCase(), description })
       });
       const data = await res.json();
       if (data.success) {
@@ -346,6 +346,13 @@ const App = {
         
         if (data.next_action === 'start_training') {
             this.startTraining();
+        }
+        if (data.next_action === 'show_rules') {
+            // Refresh file tree and load rule files  
+            setTimeout(() => {
+                Workspace.refreshFileTree(this.currentProject);
+                Workspace.loadRuleFiles(this.currentProject);
+            }, 500);
         }
     } catch (e) {
         Chat.hideTyping();

@@ -60,7 +60,7 @@ class ApiKeyTest(BaseModel):
 
 @app.get("/health")
 async def health():
-    return {"status": "running", "version": "0.1.0"}
+    return {"status": "running", "version": "0.1.0", "provider": "Engine Ready"}
 
 @app.post("/chat")
 async def chat(data: ChatMessage):
@@ -72,8 +72,26 @@ async def chat(data: ChatMessage):
         project_id=data.project_id,
         broadcast_fn=broadcast
     )
-    response = await agent.process(data.message)
-    return response
+    try:
+        response = await agent.process(data.message)
+        return response
+    except Exception as e:
+        err = str(e)
+        # Friendly messages for common errors
+        if "invalid_api_key" in err or "AuthenticationError" in err or "401" in err:
+            friendly = f"Authentication failed. Your {data.provider} API key looks invalid. Please go to Settings and update it."
+        elif "rate_limit" in err or "429" in err:
+            friendly = "Rate limit hit. Please wait a moment before sending another message."
+        elif "Connection" in err or "connect" in err.lower():
+            friendly = "Network error reaching the AI provider. Check your internet connection."
+        else:
+            friendly = f"Engine error: {err[:200]}"
+        return {
+            "response": friendly,
+            "step": "describing",
+            "next_action": None,
+            "project_id": data.project_id
+        }
 
 @app.post("/project/create")
 async def create_project(data: ProjectCreate):
@@ -125,6 +143,28 @@ async def test_api_key(data: ApiKeyTest):
         return {"valid": result, "provider": data.provider}
     except Exception as e:
         return {"valid": False, "error": str(e)}
+
+@app.get("/rule-file/{project_id}/{filename}")
+async def get_rule_file(project_id: str, filename: str):
+    """Get the content of a specific rule file."""
+    file_path = Path(f"projects/{project_id}/rules/{filename}")
+    if not file_path.exists():
+        return {"content": None, "exists": False}
+    return {"content": file_path.read_text(), "exists": True}
+
+@app.get("/project-files/{project_id}")
+async def get_project_files(project_id: str):
+    """List all files in a project directory."""
+    project_path = Path(f"projects/{project_id}")
+    if not project_path.exists():
+        return {"files": []}
+    files = []
+    rules_dir = project_path / "rules"
+    if rules_dir.exists():
+        for f in rules_dir.iterdir():
+            if f.is_file():
+                files.append({"name": f.name, "path": str(f), "size": f.stat().st_size})
+    return {"files": files, "project_id": project_id}
 
 @app.post("/train/{project_id}")
 async def start_training(project_id: str):
