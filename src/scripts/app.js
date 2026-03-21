@@ -11,6 +11,10 @@ const App = {
   ws: null,
 
   init() {
+    // #region agent log
+    debugLogViaTauri('app.js:App.init:entry', 'App.init started', {}, 'pre-fix', 'H13');
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H13',location:'app.js:App.init:entry',message:'App.init started',data:{},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     this.bindWindowControls();
     this.bindStateTransitions();
     this.bindGlassBox();
@@ -18,13 +22,29 @@ const App = {
     this.bindKeyboard();
 
     // Initialize sub-modules
-    Sidebar.init();
-    Chat.init();
-    Workspace.init();
-    GlassBox.init();
-    Editor.init();
-    Deploy.init();
-    ModelSelector.init();
+    try {
+      Sidebar.init();
+      Chat.init();
+      Workspace.init();
+      GlassBox.init();
+      Editor.init();
+      Deploy.init();
+      ModelSelector.init();
+      // #region agent log
+      debugLogViaTauri('app.js:App.init:submodules', 'All submodules initialized', {}, 'pre-fix', 'H13');
+      fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H13',location:'app.js:App.init:submodules',message:'All submodules initialized',data:{},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    } catch (error) {
+      // #region agent log
+      debugLogViaTauri('app.js:App.init:submodules:catch', 'Submodule initialization failed', { errorMessage: error?.message || 'unknown' }, 'pre-fix', 'H13');
+      fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H13',location:'app.js:App.init:submodules:catch',message:'Submodule initialization failed',data:{errorMessage:error?.message||'unknown'},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      throw error;
+    }
+    // #region agent log
+    debugLogViaTauri('app.js:App.init:exit', 'App.init completed', {}, 'pre-fix', 'H13');
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H13',location:'app.js:App.init:exit',message:'App.init completed',data:{},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
   },
 
   // ---- Window Controls (Tauri) ----
@@ -68,8 +88,16 @@ const App = {
     buildBtn.addEventListener('click', () => {
       const input = document.getElementById('welcome-input');
       const text = input.value.trim();
+      // #region agent log
+      debugLogViaTauri('app.js:bindStateTransitions:buildClick', 'Build button clicked', { textLength: text.length }, 'pre-fix', 'H10');
+      fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H10',location:'app.js:bindStateTransitions:buildClick',message:'Build button clicked',data:{textLength:text.length},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       if (text) {
         this.createProject("My App", text).then(() => {
+          // #region agent log
+          debugLogViaTauri('app.js:bindStateTransitions:createProjectResolved', 'createProject promise resolved', { hasCurrentProject: !!this.currentProject }, 'pre-fix', 'H10');
+          fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H10',location:'app.js:bindStateTransitions:createProjectResolved',message:'createProject promise resolved',data:{hasCurrentProject:!!this.currentProject},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
           this.transitionToActive(text);
         });
       }
@@ -108,6 +136,10 @@ const App = {
   },
 
   transitionToActive(initialMessage) {
+    // #region agent log
+    debugLogViaTauri('app.js:transitionToActive:entry', 'Transition to active started', { initialMessageLength: (initialMessage || '').length }, 'pre-fix', 'H11');
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H11',location:'app.js:transitionToActive:entry',message:'Transition to active started',data:{initialMessageLength:(initialMessage||'').length},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const app = document.getElementById('app');
     const welcomeCenter = document.getElementById('welcome-center');
     const chatPanel = document.getElementById('chat-panel');
@@ -292,6 +324,10 @@ const App = {
   },
 
   async createProject(name, description) {
+    // #region agent log
+    debugLogViaTauri('app.js:createProject:entry', 'createProject called', { nameLength: (name || '').length, descriptionLength: (description || '').length }, 'pre-fix', 'H12');
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H12',location:'app.js:createProject:entry',message:'createProject called',data:{nameLength:(name||'').length,descriptionLength:(description||'').length},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     try {
       const res = await fetch(`${this.apiBase}/project/create`, {
         method: 'POST',
@@ -299,12 +335,20 @@ const App = {
         body: JSON.stringify({ name: name.replace(/\\s+/g, '-').toLowerCase(), description })
       });
       const data = await res.json();
+      // #region agent log
+      debugLogViaTauri('app.js:createProject:response', 'createProject response received', { success: !!data?.success, projectIdPresent: !!data?.project_id }, 'pre-fix', 'H12');
+      fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H12',location:'app.js:createProject:response',message:'createProject response received',data:{success:!!data?.success,projectIdPresent:!!data?.project_id},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       if (data.success) {
         this.currentProject = data.project_id;
         document.getElementById('titlebar-project-name').textContent = name;
         return true;
       }
     } catch (err) {
+      // #region agent log
+      debugLogViaTauri('app.js:createProject:catch', 'createProject request failed', { errorMessage: err?.message || 'unknown' }, 'pre-fix', 'H12');
+      fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H12',location:'app.js:createProject:catch',message:'createProject request failed',data:{errorMessage:err?.message||'unknown'},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       console.error('Create project failed:', err);
     }
     return false;
@@ -313,6 +357,12 @@ const App = {
   async sendChatMessage(message) {
     const provider = this.getSavedProvider();
     const apiKey = this.getSavedApiKey();
+    // #region agent log
+    debugLogViaTauri('app.js:sendChatMessage:entry:tauri', 'sendChatMessage called', { messageLength: (message || '').length, provider, hasApiKey: !!(apiKey && apiKey.trim()) }, 'post-fix', 'H17');
+    // #endregion
+    // #region agent log
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H3',location:'app.js:sendChatMessage:entry',message:'sendChatMessage called',data:{messageLength:(message||'').length,provider,hasApiKey:!!(apiKey&&apiKey.trim()),currentProject:this.currentProject||null},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     
     if (!apiKey || apiKey.trim() === '') {
         showNotification('Please add your API key in Settings first', 'error');
@@ -340,6 +390,9 @@ const App = {
             })
         });
         const data = await response.json();
+        // #region agent log
+        fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H3',location:'app.js:sendChatMessage:response',message:'Chat API response received',data:{ok:response.ok,nextAction:data?.next_action||null,hasResponseText:!!data?.response},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         
         Chat.hideTyping();
         Chat.addAIMessage(data.response);
@@ -348,6 +401,9 @@ const App = {
             this.startTraining();
         }
     } catch (e) {
+        // #region agent log
+        fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H3',location:'app.js:sendChatMessage:catch',message:'Chat API request failed',data:{errorName:e?.name||'unknown',errorMessage:e?.message||'unknown'},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         Chat.hideTyping();
         Chat.addAIMessage('Engine not reachable. Make sure python scripts/dev.py is running.');
     }
@@ -392,6 +448,18 @@ const App = {
     return localStorage.getItem('dom_provider') || 'groq';
   }
 };
+
+function debugLogViaTauri(location, message, data, runId, hypothesisId) {
+  if (!window.__TAURI__?.core?.invoke) return;
+  const jsonData = JSON.stringify(data || {});
+  window.__TAURI__.core.invoke('debug_log_command', {
+    location,
+    message,
+    data: jsonData,
+    runId,
+    hypothesisId
+  }).catch(() => {});
+}
 
 async function loadAppPreview(projectId) {
   const response = await fetch(`${App.apiBase}/frontend/${projectId}`);
@@ -443,7 +511,62 @@ function showNotification(message, type = 'info') {
 
 // Fix 10 — Startup Sequence
 async function onAppStart() {
+  // #region agent log
+  debugLogViaTauri('app.js:onAppStart:tauri', 'onAppStart entered', { readyState: document.readyState }, 'pre-fix', 'H7');
+  // #endregion
+  // #region agent log
+  window.addEventListener('error', (event) => {
+    debugLogViaTauri(
+      'app.js:window:error',
+      'Unhandled window error captured',
+      { message: event.message || 'unknown', source: event.filename || 'unknown', line: event.lineno || null },
+      'pre-fix',
+      'H8'
+    );
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    const reasonText = typeof event.reason === 'string' ? event.reason : (event.reason?.message || 'unknown');
+    debugLogViaTauri(
+      'app.js:window:unhandledrejection',
+      'Unhandled promise rejection captured',
+      { reason: reasonText },
+      'pre-fix',
+      'H8'
+    );
+  });
+  // #endregion
+  // #region agent log
+  let __agentClickLogCount = 0;
+  let __agentKeyLogCount = 0;
+  document.addEventListener('click', (event) => {
+    if (__agentClickLogCount >= 6) return;
+    __agentClickLogCount += 1;
+    const target = event.target;
+    const targetId = target?.id || '';
+    const targetClass = typeof target?.className === 'string' ? target.className : '';
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H14',location:'app.js:document:click',message:'Document click captured',data:{targetId,targetClass},timestamp:Date.now()})}).catch(()=>{});
+  }, true);
+  document.addEventListener('keydown', (event) => {
+    if (__agentKeyLogCount >= 6) return;
+    __agentKeyLogCount += 1;
+    const target = event.target;
+    const targetId = target?.id || '';
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H14',location:'app.js:document:keydown',message:'Document keydown captured',data:{key:event.key||'',targetId},timestamp:Date.now()})}).catch(()=>{});
+  }, true);
+  // #endregion
+  // #region agent log
+  debugLogViaTauri('app.js:onAppStart:methodWiring:tauri', 'Method wiring snapshot', { hasSendMessage: typeof App?.sendMessage === 'function', hasSendChatMessage: typeof App?.sendChatMessage === 'function' }, 'pre-fix', 'H15');
+  // #endregion
+  // #region agent log
+  fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H15',location:'app.js:onAppStart:methodWiring',message:'Method wiring snapshot',data:{hasSendMessage:typeof App?.sendMessage==='function',hasSendChatMessage:typeof App?.sendChatMessage==='function'},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+  // #region agent log
+  fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H1',location:'app.js:onAppStart:entry',message:'App startup entered',data:{readyState:document.readyState},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   App.init();
+  // #region agent log
+  fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H1',location:'app.js:onAppStart:postInit',message:'App.init completed',data:{hasWelcomeInput:!!document.getElementById('welcome-input'),hasChatInput:!!document.getElementById('chat-input')},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   
   // Load saved settings
   const savedProvider = App.getSavedProvider();
@@ -455,10 +578,16 @@ async function onAppStart() {
   
   // Start 10s health check interval
   await ModelSelector.checkEngineStatus();
+  // #region agent log
+  fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H4',location:'app.js:onAppStart:engineHealth',message:'ModelSelector.checkEngineStatus completed',data:{provider:savedProvider,hasApiKey:!!savedKey},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   setInterval(() => ModelSelector.checkEngineStatus(), 10000);
   
   await Sidebar.loadRecentProjects();
   App.connectWebSocket();
+  // #region agent log
+  fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H5',location:'app.js:onAppStart:websocketInit',message:'WebSocket connection attempted',data:{wsExists:!!App.ws},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   
   // Fix 7 - Poll file tree while building
   setInterval(() => {

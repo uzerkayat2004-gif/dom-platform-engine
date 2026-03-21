@@ -7,6 +7,17 @@ const Chat = {
   messages: [],
 
   init() {
+    // #region agent log
+    if (window.__TAURI__?.core?.invoke) {
+      window.__TAURI__.core.invoke('debug_log_command', {
+        location: 'chat.js:init:wiring:tauri',
+        message: 'Chat init method wiring snapshot',
+        data: JSON.stringify({ hasSendMessage: typeof App?.sendMessage === 'function', hasSendChatMessage: typeof App?.sendChatMessage === 'function' }),
+        runId: 'pre-fix',
+        hypothesisId: 'H15'
+      }).catch(() => {});
+    }
+    // #endregion
     this.bindChatInput();
   },
 
@@ -37,14 +48,52 @@ const Chat = {
   handleSend() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
+    // #region agent log
+    if (window.__TAURI__?.core?.invoke) {
+      window.__TAURI__.core.invoke('debug_log_command', {
+        location: 'chat.js:handleSend:entry:tauri',
+        message: 'handleSend invoked from chat UI',
+        data: JSON.stringify({ textLength: text.length }),
+        runId: 'pre-fix',
+        hypothesisId: 'H9'
+      }).catch(() => {});
+    }
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H9',location:'chat.js:handleSend:entry',message:'handleSend invoked from chat UI',data:{textLength:text.length},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     if (!text) return;
-
-    this.addUserMessage(text);
     input.value = '';
     input.style.height = 'auto';
 
     // Send to backend via App
-    App.sendMessage(text);
+    // #region agent log
+    if (window.__TAURI__?.core?.invoke) {
+      window.__TAURI__.core.invoke('debug_log_command', {
+        location: 'chat.js:handleSend:tauri',
+        message: 'Chat dispatch about to call App method',
+        data: JSON.stringify({ textLength: text.length, hasSendMessage: typeof App?.sendMessage === 'function', hasSendChatMessage: typeof App?.sendChatMessage === 'function' }),
+        runId: 'pre-fix',
+        hypothesisId: 'H2'
+      }).catch(() => {});
+    }
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H2',location:'chat.js:handleSend',message:'Attempting to dispatch chat message via App',data:{textLength:text.length,hasSendMessage:typeof App?.sendMessage==='function',hasSendChatMessage:typeof App?.sendChatMessage==='function'},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    try {
+      App.sendChatMessage(text);
+    } catch (error) {
+      // #region agent log
+      if (window.__TAURI__?.core?.invoke) {
+        window.__TAURI__.core.invoke('debug_log_command', {
+          location: 'chat.js:handleSend:catch:tauri',
+          message: 'App.sendMessage threw in chat send',
+          data: JSON.stringify({ errorName: error?.name || 'unknown', errorMessage: error?.message || 'unknown' }),
+          runId: 'pre-fix',
+          hypothesisId: 'H2'
+        }).catch(() => {});
+      }
+      fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H2',location:'chat.js:handleSend:catch',message:'Dispatch failed while calling App.sendMessage',data:{errorName:error?.name||'unknown',errorMessage:error?.message||'unknown'},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      throw error;
+    }
   },
 
   addUserMessage(text) {
