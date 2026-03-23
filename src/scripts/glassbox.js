@@ -99,7 +99,7 @@ const GlassBox = {
   async loadGlassBoxHistory(projectId) {
     if (!projectId) return;
     try {
-        const response = await fetch(`http://127.0.0.1:5000/glassbox/${projectId}`);
+        const response = await fetch(`${App.apiBase}/glassbox/${projectId}`);
         const data = await response.json();
         // Clear old logs first if any, or just append
         const log = document.getElementById('glassbox-log');

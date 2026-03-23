@@ -64,7 +64,7 @@ const Editor = {
         testBtn.style.opacity = '0.6';
 
         try {
-            const response = await fetch('http://127.0.0.1:8080/api-key/test', {
+            const response = await fetch(`${App.apiBase}/api-key/test`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({provider, api_key: apiKey})

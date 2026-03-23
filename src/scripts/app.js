@@ -7,7 +7,7 @@ const App = {
   state: 'welcome', // 'welcome' | 'active'
   currentProject: null,
   config: { provider: 'groq', apiKey: '' },
-  apiBase: 'http://127.0.0.1:8080',
+  apiBase: window.DOM_ENGINE_URL || 'http://127.0.0.1:8080',
   ws: null,
 
   init() {
@@ -25,6 +25,7 @@ const App = {
     Editor.init();
     Deploy.init();
     ModelSelector.init();
+    Activity.init();
   },
 
   // ---- Window Controls (Tauri) ----
@@ -68,9 +69,11 @@ const App = {
     buildBtn.addEventListener('click', () => {
       const input = document.getElementById('welcome-input');
       const text = input.value.trim();
-      if (text) {
+      if (text && !buildBtn.disabled) {
+        buildBtn.disabled = true; // Prevent double-click
         this.createProject("My App", text).then(() => {
           this.transitionToActive(text);
+          buildBtn.disabled = false;
         });
       }
     });
@@ -237,7 +240,8 @@ const App = {
   connectWebSocket() {
     if (this.ws) this.ws.close();
     try {
-      this.ws = new WebSocket('ws://127.0.0.1:8080/ws');
+      const wsUrl = this.apiBase.replace(/^http/, 'ws') + '/ws';
+      this.ws = new WebSocket(wsUrl);
       this.ws.onopen = () => console.log('Connected to DOM Engine WS');
       this.ws.onmessage = (e) => this.handleEngineMessage(JSON.parse(e.data));
       this.ws.onclose = () => setTimeout(() => this.connectWebSocket(), 3000);
@@ -251,20 +255,28 @@ const App = {
     
     switch (data.type) {
       case 'status':
-        if (data.status === 'thinking' || data.status === 'generating_rules') {
+        if (data.status === 'thinking') {
            Chat.showTyping();
+           Activity.thinking();
+        } else if (data.status === 'generating_rules') {
+           Chat.showTyping();
+           Activity.generatingRules();
+        } else if (data.status === 'building_frontend') {
+           Activity.buildingFrontend();
         } else {
            Chat.hideTyping();
         }
         break;
       case 'file_created':
         Workspace.addFile(data.filename);
+        Activity.updateStep(`Created ${data.filename}`);
         break;
       case 'glass_box_entry':
         GlassBox.addEntry(data.entry);
         break;
       case 'training_progress':
         updateWorkspaceMessage(data.message);
+        Activity.training(data.message);
         GlassBox.addEntry({
           action_type: 'SYSTEM',
           type_label: '🔧 SYSTEM',
@@ -277,6 +289,7 @@ const App = {
       case 'training_complete':
         updateWorkspaceMessage('DOM model training complete — building your app...');
         showNotification('Training complete! Building frontend...', 'success');
+        Activity.complete('Training complete!');
         break;
       case 'frontend_ready':
         loadAppPreview(data.project_id);
@@ -284,6 +297,7 @@ const App = {
       case 'app_ready':
         switchWorkspaceToPreview(data.project_id);
         showNotification('Your app is ready!', 'success');
+        Activity.complete('Your app is ready!');
         break;
       case 'workspace_update':
         // Optional: update UI based on step (questioning, etc)
@@ -302,6 +316,8 @@ const App = {
       if (data.success) {
         this.currentProject = data.project_id;
         document.getElementById('titlebar-project-name').textContent = name;
+        Sidebar.trackProject(data.project_id, name);
+        Sidebar.loadRecentProjects();
         return true;
       }
     } catch (err) {
@@ -327,6 +343,7 @@ const App = {
     
     Chat.addUserMessage(message);
     Chat.showTyping();
+    Activity.thinking();
     
     try {
         const response = await fetch(`${this.apiBase}/chat`, {
@@ -343,6 +360,7 @@ const App = {
         
         Chat.hideTyping();
         Chat.addAIMessage(data.response);
+        Activity.hide();
         
         if (data.next_action === 'start_training') {
             this.startTraining();
@@ -356,12 +374,19 @@ const App = {
         }
     } catch (e) {
         Chat.hideTyping();
+        Activity.hide();
         Chat.addAIMessage('Engine not reachable. Make sure python scripts/dev.py is running.');
     }
   },
 
   async startTraining() {
     if (!this.currentProject) return;
+    // NOW show the building state
+    const waiting = document.getElementById('workspace-waiting');
+    const building = document.getElementById('workspace-building-content');
+    if (waiting) waiting.style.display = 'none';
+    if (building) building.style.display = '';
+    Activity.training('Starting training...');
     try {
       await fetch(`${this.apiBase}/train/${this.currentProject}`, { method: 'POST' });
     } catch (err) {
@@ -467,18 +492,9 @@ async function onAppStart() {
   await Sidebar.loadRecentProjects();
   App.connectWebSocket();
   
-  // Fix 7 - Poll file tree while building
-  setInterval(() => {
-      if (App.currentProject && Workspace.activeTab === 'building') {
-          Workspace.refreshFileTree(App.currentProject);
-      }
-  }, 3000);
-  
   const lastProject = localStorage.getItem('dom_last_project');
   if (lastProject) {
       App.currentProject = lastProject;
-      // Load preview if exists
-      loadAppPreview(lastProject);
   }
 }
 

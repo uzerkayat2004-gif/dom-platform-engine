@@ -10,9 +10,11 @@ from pydantic import BaseModel
 import uvicorn
 import asyncio
 import json
+import shutil
 import threading
 from pathlib import Path
-from engine.dom_server.server import start_dom_server
+from datetime import datetime
+# dom_server imported lazily inside /dom-server/start endpoint
 
 app = FastAPI(title="DOM Platform Engine", version="0.1.0")
 
@@ -107,7 +109,8 @@ async def create_project(data: ProjectCreate):
         "name": data.name,
         "description": data.description,
         "status": "created",
-        "step": "describing"
+        "step": "describing",
+        "created_at": datetime.now().isoformat()
     }
     (project_path / "config.json").write_text(json.dumps(config, indent=2))
     return {"success": True, "project_id": data.name, "path": str(project_path)}
@@ -124,6 +127,27 @@ async def list_projects():
                 if config_file.exists():
                     projects.append(json.loads(config_file.read_text()))
     return {"projects": projects}
+
+@app.get("/conversation/{project_id}")
+async def get_conversation(project_id: str):
+    """Return saved conversation history for a project."""
+    convo_path = Path(f"projects/{project_id}/conversation.json")
+    if not convo_path.exists():
+        return {"messages": [], "step": "describing"}
+    data = json.loads(convo_path.read_text())
+    return {
+        "messages": data.get("messages", []),
+        "step": data.get("step", "describing")
+    }
+
+@app.post("/projects/clear")
+async def clear_projects():
+    """Delete all projects for development cleanup."""
+    projects_dir = Path("projects")
+    if projects_dir.exists():
+        shutil.rmtree(projects_dir)
+    projects_dir.mkdir()
+    return {"cleared": True}
 
 @app.get("/project/{project_id}")
 async def get_project(project_id: str):
@@ -184,6 +208,7 @@ class StartDOMServer(BaseModel):
 @app.post("/dom-server/start")
 async def start_dom(data: StartDOMServer):
     """Start the DOM server for a project in a background thread."""
+    from engine.dom_server.server import start_dom_server
     thread = threading.Thread(
         target=start_dom_server,
         args=(data.project_id, data.port),

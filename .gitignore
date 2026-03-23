@@ -26,3 +26,5 @@ cache/
 .vscode/
 *.swp
 *.swo
+
+.vercel

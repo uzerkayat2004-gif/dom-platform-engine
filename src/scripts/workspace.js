@@ -106,7 +106,7 @@ const Workspace = {
   async refreshFileTree(projectId) {
     if (!projectId) return;
     try {
-        const response = await fetch(`http://127.0.0.1:8080/project-files/${projectId}`);
+        const response = await fetch(`${App.apiBase}/project-files/${projectId}`);
         const data = await response.json();
         const tree = document.getElementById('file-tree');
         if (!tree) return;
@@ -163,7 +163,7 @@ const Workspace = {
     
     for (const file of files) {
         try {
-            const r = await fetch(`http://127.0.0.1:8080/rule-file/${projectId}/${file}`);
+            const r = await fetch(`${App.apiBase}/rule-file/${projectId}/${file}`);
             const data = await r.json();
             
             const icons = {'security.md': '🔒', 'behavior.md': '⚙️', 'limits.md': '🚫', 'skills.md': '✅'};

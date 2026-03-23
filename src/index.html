@@ -63,6 +63,20 @@
       </div>
     </div>
 
+    <!-- ======== GLOBAL ACTIVITY STATUS BAR ======== -->
+    <div id="activity-bar" class="activity-bar" style="display:none;">
+      <div class="activity-bar-inner">
+        <div class="activity-pulse"></div>
+        <svg class="activity-icon" width="16" height="16" viewBox="0 0 40 40" fill="none">
+          <path d="M20 2L38 20L20 38L2 20L20 2Z" fill="url(#brand-grad)" opacity="0.9"/>
+        </svg>
+        <span class="activity-text" id="activity-text">DOM is working...</span>
+        <span class="activity-step" id="activity-step"></span>
+        <span class="activity-timer" id="activity-timer"></span>
+      </div>
+      <div class="activity-progress-line"></div>
+    </div>
+
     <!-- ======== MAIN CONTENT AREA ======== -->
     <div id="main-content">
 
@@ -222,9 +236,19 @@
         </div>
 
         <div class="workspace-content">
-          <!-- Building View -->
-          <div class="workspace-view active" id="view-building">
-            <div class="workspace-building">
+          <!-- Building View (hidden by default — only shown when training starts) -->
+          <div class="workspace-view" id="view-building">
+            <!-- Waiting state: shown before any build starts -->
+            <div class="workspace-waiting" id="workspace-waiting">
+              <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;">
+                <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.3;">
+                  <path d="M20 2L38 20L20 38L2 20L20 2Z" fill="#3D5AFE"/>
+                </svg>
+                <span style="color:var(--text-muted);font-size:14px;">Workspace will update as your project progresses</span>
+              </div>
+            </div>
+            <!-- Building state: only shown when training is active -->
+            <div class="workspace-building" id="workspace-building-content" style="display:none;">
               <div class="building-logo">
                 <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <defs>
@@ -247,7 +271,7 @@
               </div>
 
               <div class="file-tree" id="file-tree">
-                <!-- Populated by JS depending on step -->
+                <!-- Populated by real WebSocket file_created messages -->
               </div>
             </div>
           </div>
@@ -415,6 +439,11 @@
 
   </div><!-- /app -->
 
+  <!-- Engine URL Configuration - update after backend deployment -->
+  <script>
+    window.DOM_ENGINE_URL = 'https://dom-platform-production.up.railway.app';
+  </script>
+
   <!-- Scripts -->
   <script src="scripts/app.js"></script>
   <script src="scripts/sidebar.js"></script>
@@ -424,5 +453,6 @@
   <script src="scripts/editor.js"></script>
   <script src="scripts/deploy.js"></script>
   <script src="scripts/model-selector.js"></script>
+  <script src="scripts/activity.js"></script>
 </body>
 </html>
