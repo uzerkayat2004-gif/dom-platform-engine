@@ -22,7 +22,12 @@ app = FastAPI(title="DOM Platform Engine", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8080", "http://localhost:8080", "tauri://localhost", "https://tauri.localhost"],
+    allow_origins=[
+        "http://127.0.0.1:8080",
+        "http://localhost:8080",
+        "tauri://localhost",
+        "https://tauri.localhost",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -52,7 +57,10 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
-        active_connections.remove(websocket)
+        try:
+            active_connections.remove(websocket)
+        except ValueError:
+            pass  # Already removed
 
 
 class ChatMessage(BaseModel):
@@ -114,7 +122,7 @@ async def chat(data: ChatMessage):
 
 def sanitize_path_param(param: str) -> str:
     """Sanitize a path parameter to prevent path traversal."""
-    if not param or '/' in param or '\\' in param or param in ('.', '..'):
+    if not param or "/" in param or "\\" in param or param in (".", ".."):
         raise HTTPException(status_code=400, detail="Invalid path parameter")
     return param
 
@@ -362,9 +370,40 @@ class DeployProject(BaseModel):
 
 @app.post("/deploy")
 async def deploy_project(data: DeployProject):
-    """Deploy the project (placeholder endpoint for MVP)."""
+    """Deploy the project by preparing it for distribution or local execution."""
     safe_id = sanitize_project_id(data.project_id)
-    return {"status": "success", "url": f"https://{safe_id}.dom.app"}
+    project_path = Path(f"projects/{safe_id}")
+
+    if not project_path.exists():
+        return {"status": "error", "message": "Project not found"}
+
+    # Check if frontend is built
+    frontend_path = project_path / "frontend" / "index.html"
+    if not frontend_path.exists():
+        return {
+            "status": "error",
+            "message": "Frontend not built yet. Train the model first.",
+        }
+
+    # Check if model is trained
+    model_path = project_path / "model" / "adapter"
+    if not model_path.exists():
+        return {
+            "status": "error",
+            "message": "Model not trained yet. Training required before deployment.",
+        }
+
+    return {
+        "status": "success",
+        "message": "Project ready for deployment",
+        "project_id": safe_id,
+        "deployment_info": {
+            "frontend_path": str(frontend_path),
+            "model_path": str(model_path),
+            "rules_path": str(project_path / "rules"),
+            "note": "To deploy: package frontend, trained model, and rules. The frontend communicates with the local DOM model on port 5000.",
+        },
+    }
 
 
 if __name__ == "__main__":
