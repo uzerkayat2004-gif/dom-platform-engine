@@ -51,7 +51,10 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
-        active_connections.remove(websocket)
+        try:
+            active_connections.remove(websocket)
+        except ValueError:
+            pass  # Already removed
 
 
 class ChatMessage(BaseModel):
@@ -340,8 +343,44 @@ class DeployProject(BaseModel):
 
 @app.post("/deploy")
 async def deploy_project(data: DeployProject):
-    """Deploy the project (placeholder endpoint for MVP)."""
-    return {"status": "success", "url": f"https://{data.project_id}.dom.app"}
+    """Deploy the project by preparing it for distribution or local execution."""
+    project_path = Path(f"projects/{data.project_id}")
+    if not project_path.exists():
+        return {"status": "error", "message": "Project not found"}
+
+    # Check if frontend is built
+    frontend_path = project_path / "frontend" / "index.html"
+    if not frontend_path.exists():
+        return {
+            "status": "error",
+            "message": "Frontend not built yet. Train the model first.",
+        }
+
+    # Check if model is trained
+    model_path = project_path / "model" / "adapter"
+    if not model_path.exists():
+        return {
+            "status": "error",
+            "message": "Model not trained yet. Training required before deployment.",
+        }
+
+    # For now, return deployment information
+    # In a full implementation, this would:
+    # 1. Package the frontend + model + rules into a distributable format
+    # 2. Create a standalone executable or web deployable bundle
+    # 3. Optionally upload to a deployment service
+
+    return {
+        "status": "success",
+        "message": "Project ready for deployment",
+        "project_id": data.project_id,
+        "deployment_info": {
+            "frontend_path": str(frontend_path),
+            "model_path": str(model_path),
+            "rules_path": str(project_path / "rules"),
+            "note": "To deploy: package frontend, trained model, and rules. The frontend communicates with the local DOM model on port 5000.",
+        },
+    }
 
 
 if __name__ == "__main__":
