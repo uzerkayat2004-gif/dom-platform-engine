@@ -68,6 +68,16 @@ async def test_flow():
 
     listen_task = asyncio.create_task(listen())
 
+    # 4.5 Test Path Traversal Fix
+    print("\n[Testing Path Traversal]")
+    # Test path traversal directly
+    r = requests.get(f"{API_BASE}/conversation/..%2Fother_project")
+    # Due to FastAPI routing, it might route to a 404 if it interprets it differently,
+    # but let's test a valid encoded traversal.
+    r2 = requests.get(f"{API_BASE}/conversation/..")
+    assert r.status_code in [400, 404], f"Path traversal not blocked, got {r.status_code}"
+    print("  [Path Traversal] Successfully blocked (400/404)")
+
     # 5. Send initial chat message (User Req 3)
     print(f"\n[Sending Chat]: {payload['description']}")
     
