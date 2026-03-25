@@ -52,7 +52,10 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
-        active_connections.remove(websocket)
+        try:
+            active_connections.remove(websocket)
+        except ValueError:
+            pass  # Already removed
 
 
 class ChatMessage(BaseModel):
@@ -168,7 +171,11 @@ async def list_projects():
 @app.get("/conversation/{project_id}")
 async def get_conversation(project_id: str):
     """Return saved conversation history for a project."""
-    if not project_id or os.path.basename(project_id) != project_id or project_id in (".", ".."):
+    if (
+        not project_id
+        or os.path.basename(project_id) != project_id
+        or project_id in (".", "..")
+    ):
         raise HTTPException(status_code=400, detail="Invalid project_id")
     convo_path = Path(f"projects/{project_id}/conversation.json")
     validate_path(convo_path)
