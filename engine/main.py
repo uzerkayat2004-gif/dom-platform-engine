@@ -28,6 +28,17 @@ app.add_middleware(
 # WebSocket connections for real-time updates to the UI
 active_connections: list[WebSocket] = []
 
+def validate_path(project_id: str, filename: str = None) -> Path:
+    """Validate that the given path is within the projects directory."""
+    base = Path("projects").resolve()
+    target = Path(f"projects/{project_id}").resolve()
+    if filename:
+        target = Path(f"projects/{project_id}/rules/{filename}").resolve()
+
+    if not target.is_relative_to(base):
+        raise ValueError("Invalid path access")
+    return target
+
 async def broadcast(message: dict):
     """Send real-time updates to all connected UI clients."""
     for connection in active_connections:
@@ -98,7 +109,10 @@ async def chat(data: ChatMessage):
 @app.post("/project/create")
 async def create_project(data: ProjectCreate):
     """Create a new project folder structure."""
-    project_path = Path(f"projects/{data.name}")
+    try:
+        project_path = validate_path(data.name)
+    except ValueError:
+        return {"error": "Invalid project name"}
     project_path.mkdir(parents=True, exist_ok=True)
     (project_path / "rules").mkdir(exist_ok=True)
     (project_path / "training").mkdir(exist_ok=True)
@@ -131,7 +145,11 @@ async def list_projects():
 @app.get("/conversation/{project_id}")
 async def get_conversation(project_id: str):
     """Return saved conversation history for a project."""
-    convo_path = Path(f"projects/{project_id}/conversation.json")
+    try:
+        project_path = validate_path(project_id)
+    except ValueError:
+        return {"messages": [], "step": "describing"}
+    convo_path = project_path / "conversation.json"
     if not convo_path.exists():
         return {"messages": [], "step": "describing"}
     data = json.loads(convo_path.read_text())
@@ -152,7 +170,11 @@ async def clear_projects():
 @app.get("/project/{project_id}")
 async def get_project(project_id: str):
     """Get project status and config."""
-    config_path = Path(f"projects/{project_id}/config.json")
+    try:
+        project_path = validate_path(project_id)
+    except ValueError:
+        return {"error": "Invalid project ID"}
+    config_path = project_path / "config.json"
     if not config_path.exists():
         return {"error": "Project not found"}
     return json.loads(config_path.read_text())
@@ -171,7 +193,10 @@ async def test_api_key(data: ApiKeyTest):
 @app.get("/rule-file/{project_id}/{filename}")
 async def get_rule_file(project_id: str, filename: str):
     """Get the content of a specific rule file."""
-    file_path = Path(f"projects/{project_id}/rules/{filename}")
+    try:
+        file_path = validate_path(project_id, filename)
+    except ValueError:
+        return {"content": None, "exists": False}
     if not file_path.exists():
         return {"content": None, "exists": False}
     return {"content": file_path.read_text(), "exists": True}
@@ -179,7 +204,10 @@ async def get_rule_file(project_id: str, filename: str):
 @app.get("/project-files/{project_id}")
 async def get_project_files(project_id: str):
     """List all files in a project directory."""
-    project_path = Path(f"projects/{project_id}")
+    try:
+        project_path = validate_path(project_id)
+    except ValueError:
+        return {"files": []}
     if not project_path.exists():
         return {"files": []}
     files = []
@@ -258,7 +286,11 @@ async def build_frontend(data: BuildFrontend):
 @app.get("/frontend/{project_id}")
 async def get_frontend(project_id: str):
     """Get the generated frontend HTML."""
-    frontend_path = Path(f"projects/{project_id}/frontend/index.html")
+    try:
+        project_path = validate_path(project_id)
+    except ValueError:
+        return {"error": "Invalid project ID"}
+    frontend_path = project_path / "frontend" / "index.html"
     if not frontend_path.exists():
         return {"error": "Frontend not built yet"}
     return {"html": frontend_path.read_text(), "path": str(frontend_path)}

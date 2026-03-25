@@ -4,6 +4,7 @@ import logging
 import requests
 import websockets
 from pathlib import Path
+import pytest
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -11,6 +12,7 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 API_BASE = "http://127.0.0.1:8080"
 WS_URL = "ws://127.0.0.1:8080/ws"
 
+@pytest.mark.asyncio
 async def test_flow():
     print("=== DOM Platform Engine Test ===")
     
