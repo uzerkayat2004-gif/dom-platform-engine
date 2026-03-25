@@ -37,13 +37,18 @@ const GlassBox = {
     const entry = document.createElement('div');
     entry.className = `glassbox-entry ${type}${type === 'blocked' ? ' flash' : ''}`;
     
-    // Check if it's a raw entry from DOM server (Fix 8)
-    if (message && typeof message === 'object' && message.full_entry) {
+    // Handle structured entry from backend (Fix 8: Real Data)
+    if (message && typeof message === 'object') {
+        const timestamp = message.timestamp || now;
+        const icon = message.is_blocked ? '🔴' : (message.type_label ? message.type_label.split(' ')[0] : (icons[type] || '📋'));
+        const label = message.type_label ? message.type_label.split(' ').slice(1).join(' ') : (typeLabels[type] || type.toUpperCase());
+        const msgText = message.message || message.full_entry || '';
+
         entry.innerHTML = `
-          <span class="entry-time">[${now}]</span>
-          <span class="entry-icon">${message.is_blocked ? '🔴' : '📋'}</span>
-          <span class="entry-type">${message.action_type || 'INFO'}</span>
-          <span class="entry-message">${message.full_entry}</span>
+          <span class="entry-time">[${timestamp}]</span>
+          <span class="entry-icon">${icon}</span>
+          <span class="entry-type">${label}</span>
+          <span class="entry-message">${msgText}</span>
         `;
         if (message.is_blocked) type = 'blocked';
     } else {
@@ -100,23 +105,25 @@ const GlassBox = {
     if (!projectId) return;
     try {
         const response = await fetch(`${App.apiBase}/glassbox/${projectId}`);
+        if (!response.ok) return;
+
         const data = await response.json();
-        // Clear old logs first if any, or just append
         const log = document.getElementById('glassbox-log');
+
         if (log && data.entries && data.entries.length > 0) {
             log.innerHTML = '';
             this.entryCount = 0;
             this.blockedCount = 0;
             this.passedCount = 0;
             
-            data.entries.forEach(entry => this.addEntry(entry.includes('BLOCKED') ? 'blocked' : 'passed', {
-                full_entry: entry,
-                is_blocked: entry.includes('BLOCKED'),
-                action_type: entry.includes('BLOCKED') ? 'SECURITY_BLOCK' : 'INFO'
-            }));
+            // Backend now returns structured entries
+            data.entries.forEach(entry => {
+                const type = entry.is_blocked ? 'blocked' : 'passed';
+                this.addEntry(type, entry);
+            });
         }
     } catch (e) {
-        // DOM server not started yet
+        console.error('Failed to load glass box history:', e);
     }
   }
 };

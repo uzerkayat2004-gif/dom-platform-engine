@@ -14,9 +14,20 @@ import shutil
 import threading
 from pathlib import Path
 from datetime import datetime
+from fastapi import HTTPException
 # dom_server imported lazily inside /dom-server/start endpoint
 
 app = FastAPI(title="DOM Platform Engine", version="0.1.0")
+
+def validate_path(project_id: str) -> Path:
+    """Validate project_id and return a safe path, preventing traversal."""
+    if not project_id or not all(c.isalnum() or c in "-_" for c in project_id):
+        raise HTTPException(status_code=400, detail="Invalid project ID")
+
+    project_path = Path("projects") / project_id
+    if not project_path.resolve().is_relative_to(Path("projects").resolve()):
+         raise HTTPException(status_code=400, detail="Invalid project path")
+    return project_path
 
 app.add_middleware(
     CORSMiddleware,
@@ -131,7 +142,8 @@ async def list_projects():
 @app.get("/conversation/{project_id}")
 async def get_conversation(project_id: str):
     """Return saved conversation history for a project."""
-    convo_path = Path(f"projects/{project_id}/conversation.json")
+    project_path = validate_path(project_id)
+    convo_path = project_path / "conversation.json"
     if not convo_path.exists():
         return {"messages": [], "step": "describing"}
     data = json.loads(convo_path.read_text())
@@ -152,7 +164,8 @@ async def clear_projects():
 @app.get("/project/{project_id}")
 async def get_project(project_id: str):
     """Get project status and config."""
-    config_path = Path(f"projects/{project_id}/config.json")
+    project_path = validate_path(project_id)
+    config_path = project_path / "config.json"
     if not config_path.exists():
         return {"error": "Project not found"}
     return json.loads(config_path.read_text())
@@ -171,7 +184,12 @@ async def test_api_key(data: ApiKeyTest):
 @app.get("/rule-file/{project_id}/{filename}")
 async def get_rule_file(project_id: str, filename: str):
     """Get the content of a specific rule file."""
-    file_path = Path(f"projects/{project_id}/rules/{filename}")
+    project_path = validate_path(project_id)
+    # Also validate filename to prevent traversal
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+
+    file_path = project_path / "rules" / filename
     if not file_path.exists():
         return {"content": None, "exists": False}
     return {"content": file_path.read_text(), "exists": True}
@@ -179,7 +197,7 @@ async def get_rule_file(project_id: str, filename: str):
 @app.get("/project-files/{project_id}")
 async def get_project_files(project_id: str):
     """List all files in a project directory."""
-    project_path = Path(f"projects/{project_id}")
+    project_path = validate_path(project_id)
     if not project_path.exists():
         return {"files": []}
     files = []
@@ -197,6 +215,7 @@ class TrainRequest(BaseModel):
 @app.post("/train/{project_id}")
 async def start_training(project_id: str, data: TrainRequest):
     """Start DOM model training for a project."""
+    validate_path(project_id)
     asyncio.create_task(run_training(project_id, data.provider, data.api_key))
     return {"status": "started", "project_id": project_id}
 
@@ -258,10 +277,19 @@ async def build_frontend(data: BuildFrontend):
 @app.get("/frontend/{project_id}")
 async def get_frontend(project_id: str):
     """Get the generated frontend HTML."""
-    frontend_path = Path(f"projects/{project_id}/frontend/index.html")
+    project_path = validate_path(project_id)
+    frontend_path = project_path / "frontend" / "index.html"
     if not frontend_path.exists():
         return {"error": "Frontend not built yet"}
     return {"html": frontend_path.read_text(), "path": str(frontend_path)}
+
+@app.get("/glassbox/{project_id}")
+async def get_glassbox(project_id: str):
+    """Get Glass Box log entries for a project."""
+    validate_path(project_id)
+    from engine.glassbox.logger import GlassBoxLogger
+    logger = GlassBoxLogger(project_id)
+    return {"entries": logger.get_recent(100)}
 
 class DeployProject(BaseModel):
     project_id: str

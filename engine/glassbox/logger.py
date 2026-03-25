@@ -60,8 +60,56 @@ class GlassBoxLogger:
         })
     
     def get_recent(self, lines: int = 50) -> list:
-        """Get the most recent log entries."""
+        """Get the most recent log entries as structured objects."""
         if not self.log_file.exists():
             return []
+
         all_lines = self.log_file.read_text(encoding="utf-8").strip().split("\n")
-        return all_lines[-lines:]
+        recent_lines = all_lines[-lines:]
+
+        structured_entries = []
+        for line in recent_lines:
+            try:
+                # Format: [HH:MM:SS] ICON TYPE  MESSAGE
+                if not (line.startswith("[") and "]" in line):
+                    continue
+
+                parts = line.split("] ", 1)
+                timestamp = parts[0][1:]
+                rest = parts[1]
+
+                # Extract icon and type (e.g., "🔴 BLOCKED  ")
+                # Find the first double space which separates type from message
+                type_msg_split = rest.split("  ", 1)
+                type_part = type_msg_split[0]
+                message = type_msg_split[1] if len(type_msg_split) > 1 else ""
+
+                # Extract icon and label from type_part (e.g., "🔴 BLOCKED")
+                icon_label_split = type_part.split(" ", 1)
+                icon = icon_label_split[0]
+                label = icon_label_split[1] if len(icon_label_split) > 1 else ""
+
+                # Map label back to action_type key if possible
+                action_type = "INFO"
+                for k, v in self.ACTION_TYPES.items():
+                    if label in v:
+                        action_type = k
+                        break
+
+                structured_entries.append({
+                    "timestamp": timestamp,
+                    "action_type": action_type,
+                    "type_label": type_part,
+                    "message": message,
+                    "full_entry": line,
+                    "is_blocked": action_type == "SECURITY_BLOCK"
+                })
+            except Exception:
+                # Fallback for malformed lines
+                structured_entries.append({
+                    "full_entry": line,
+                    "message": line,
+                    "is_blocked": "BLOCKED" in line
+                })
+
+        return structured_entries
