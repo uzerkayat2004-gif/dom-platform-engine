@@ -7,7 +7,6 @@ security is enforced before execution, not after.
 """
 
 import re
-from pathlib import Path
 from engine.rules.generator import RuleGenerator
 
 class RuleEnforcer:
@@ -113,8 +112,9 @@ class RuleEnforcer:
             if l.strip().startswith("skill")
         ]
         keywords = list(default_keywords)
+        word_pattern = re.compile(r'\b\w+\b')
         for line in skill_lines:
-            words = re.findall(r'\b\w+\b', line)
+            words = word_pattern.findall(line)
             keywords.extend([w for w in words if len(w) > 3])
         
         return list(set(keywords))

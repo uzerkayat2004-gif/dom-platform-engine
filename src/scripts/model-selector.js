@@ -37,11 +37,19 @@ const ModelSelector = {
   
   async checkEngineStatus() {
     try {
-        const response = await fetch('http://127.0.0.1:8080/health');
+        const response = await fetch(`${App.apiBase}/health`);
         const data = await response.json();
-        this.setModelStatus('connected', data.provider || 'Engine Ready');
+        // Show saved provider name if API key exists
+        const savedProvider = App.getSavedProvider();
+        const savedKey = App.getSavedApiKey();
+        const providerLabels = { groq: 'Groq Connected', anthropic: 'Anthropic Connected', openai: 'OpenAI Connected', custom: 'Custom Connected' };
+        if (savedKey) {
+            this.setModelStatus('connected', providerLabels[savedProvider] || 'Engine Ready');
+        } else {
+            this.setModelStatus('connected', 'Engine Ready — add API key');
+        }
     } catch (e) {
-        this.setModelStatus('disconnected', 'Engine not running');
+        this.setModelStatus('disconnected', 'Engine Offline');
     }
   },
   

@@ -5,7 +5,6 @@ This is the deployed app's brain running locally.
 """
 
 from pathlib import Path
-from typing import Optional
 
 class DOMInference:
     

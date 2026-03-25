@@ -5,6 +5,7 @@ constrained by the project's rule files.
 """
 
 import json
+import aiofiles
 from pathlib import Path
 from typing import Callable, Optional, List
 from engine.primary_agent.providers import get_provider
@@ -64,13 +65,25 @@ Return ONLY the JSON array."""
                 if clean.startswith("json"):
                     clean = clean[4:]
             examples = json.loads(clean)
-        except:
+            
+            # Use the secondary Hardware Language Model to produce training code for the small model
+            from engine.training.hardware_bridge import hardware_bridge
+            import asyncio
+            for ex in examples:
+                if "PASSED" in str(ex.get("rule_check", "")):
+                    ex["assembly"] = await asyncio.to_thread(
+                        hardware_bridge.generate_assembly, ex.get("instruction", "Unknown")
+                    )
+                else:
+                    ex["assembly"] = "; BLOCKED\n; Rule violation detected"
+        except Exception as e:
+            print(f"Data generation processing error: {e}")
             examples = self._get_fallback_examples()
         
         # Save as JSONL
-        with open(self.output_path, "w", encoding="utf-8") as f:
-            for ex in examples:
-                f.write(json.dumps(ex) + "\n")
+        async with aiofiles.open(self.output_path, "w", encoding="utf-8") as f:
+            content = "".join(json.dumps(ex) + "\n" for ex in examples)
+            await f.write(content)
         
         await self.broadcast({
             "type": "training_data_ready",

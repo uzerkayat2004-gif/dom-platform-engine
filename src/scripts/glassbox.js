@@ -4,9 +4,9 @@
  */
 
 const GlassBox = {
-  entryCount: 5,
-  blockedCount: 1,
-  passedCount: 4,
+  entryCount: 0,
+  blockedCount: 0,
+  passedCount: 0,
 
   init() {
     // Glass Box is pre-populated with sample entries in HTML
@@ -17,6 +17,12 @@ const GlassBox = {
   addEntry(type, message, time = null) {
     const log = document.getElementById('glassbox-log');
     const now = time || new Date().toLocaleTimeString('en-US', { hour12: false });
+
+    // Check if it's a raw entry from DOM server (Fix 8)
+    if (type && typeof type === 'object' && type.full_entry) {
+        message = type;
+        type = message.is_blocked ? 'blocked' : (message.action_type || 'INFO').toLowerCase();
+    }
 
     const icons = {
       'blocked': '🔴',
@@ -37,7 +43,6 @@ const GlassBox = {
     const entry = document.createElement('div');
     entry.className = `glassbox-entry ${type}${type === 'blocked' ? ' flash' : ''}`;
     
-    // Check if it's a raw entry from DOM server (Fix 8)
     if (message && typeof message === 'object' && message.full_entry) {
         entry.innerHTML = `
           <span class="entry-time">[${now}]</span>
@@ -45,7 +50,6 @@ const GlassBox = {
           <span class="entry-type">${message.action_type || 'INFO'}</span>
           <span class="entry-message">${message.full_entry}</span>
         `;
-        if (message.is_blocked) type = 'blocked';
     } else {
         entry.innerHTML = `
           <span class="entry-time">[${now}]</span>
@@ -99,7 +103,7 @@ const GlassBox = {
   async loadGlassBoxHistory(projectId) {
     if (!projectId) return;
     try {
-        const response = await fetch(`http://127.0.0.1:5000/glassbox/${projectId}`);
+        const response = await fetch(`${App.apiBase}/glassbox/${projectId}`);
         const data = await response.json();
         // Clear old logs first if any, or just append
         const log = document.getElementById('glassbox-log');

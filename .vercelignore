@@ -1,0 +1,23 @@
+# Exclude non-frontend files from Vercel deployment
+.git
+.venv
+node_modules
+src-tauri
+engine
+projects
+/scripts
+config
+__pycache__
+*.py
+*.exe
+Cargo.toml
+Cargo.lock
+Procfile
+runtime.txt
+requirements.txt
+README.md
+package-lock.json
+package.json
+.vscode
+.gitignore
+rustup-init.exe

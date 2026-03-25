@@ -1,25 +1,120 @@
 /**
  * DOM Platform — Chat Panel
- * chat.js — Messages, typing, input handling
+ * chat.js — Messages, typing, input handling, localStorage history
  */
 
 const Chat = {
   messages: [],
 
   init() {
+    // #region agent log
+    if (window.__TAURI__?.core?.invoke) {
+      window.__TAURI__.core.invoke('debug_log_command', {
+        location: 'chat.js:init:wiring:tauri',
+        message: 'Chat init method wiring snapshot',
+        data: JSON.stringify({ hasSendMessage: typeof App?.sendMessage === 'function', hasSendChatMessage: typeof App?.sendChatMessage === 'function' }),
+        runId: 'pre-fix',
+        hypothesisId: 'H15'
+      }).catch(() => {});
+    }
+    // #endregion
     this.bindChatInput();
   },
+
+  // ---- localStorage Persistence ----
+
+  _storageKey(projectId) {
+    return `dom_chat_${projectId}`;
+  },
+
+  saveHistory(projectId) {
+    if (!projectId) return;
+    try {
+      localStorage.setItem(this._storageKey(projectId), JSON.stringify(this.messages));
+    } catch (e) {
+      console.warn('Chat: could not save history', e);
+    }
+  },
+
+  loadHistory(projectId) {
+    if (!projectId) return [];
+    try {
+      const raw = localStorage.getItem(this._storageKey(projectId));
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  /**
+   * Restore chat history for a project — call when switching to an existing project.
+   * Clears the current chat panel and re-renders stored messages.
+   */
+  restoreHistory(projectId) {
+    const history = this.loadHistory(projectId);
+    this.clearMessages();
+
+    if (history.length === 0) return;
+
+    history.forEach(msg => {
+      if (msg.role === 'user') {
+        this._renderUserMessage(msg.content);
+      } else if (msg.role === 'assistant') {
+        this._renderAIMessage(msg.content);
+      }
+    });
+
+    this.messages = [...history];
+    this.scrollToBottom();
+  },
+
+  clearMessages() {
+    const container = document.getElementById('chat-messages');
+    if (container) {
+      // Keep only the typing indicator (last child by class)
+      const typing = document.getElementById('typing-indicator');
+      container.innerHTML = '';
+      if (typing) container.appendChild(typing);
+    }
+    this.messages = [];
+  },
+
+  // ---- Render helpers (internal, no save) ----
+
+  _renderUserMessage(text) {
+    const container = document.getElementById('chat-messages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message-user';
+    msgDiv.innerHTML = `<div class="message-user-body">${this.escapeHtml(text)}</div>`;
+    const typing = document.getElementById('typing-indicator');
+    if (typing) container.insertBefore(msgDiv, typing);
+    else container.appendChild(msgDiv);
+  },
+
+  _renderAIMessage(text) {
+    const container = document.getElementById('chat-messages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message-ai';
+    msgDiv.innerHTML = `
+      <span class="message-ai-label">DOM</span>
+      <div class="message-ai-body">${text}</div>
+    `;
+    const typing = document.getElementById('typing-indicator');
+    if (typing) container.insertBefore(msgDiv, typing);
+    else container.appendChild(msgDiv);
+    return msgDiv;
+  },
+
+  // ---- Public message adders (save to localStorage) ----
 
   bindChatInput() {
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('btn-chat-send');
 
-    // Send on button click
     sendBtn.addEventListener('click', () => {
       this.handleSend();
     });
 
-    // Send on Enter (Shift+Enter for newline)
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -27,7 +122,6 @@ const Chat = {
       }
     });
 
-    // Auto-resize textarea
     input.addEventListener('input', () => {
       input.style.height = 'auto';
       input.style.height = Math.min(input.scrollHeight, 100) + 'px';
@@ -37,45 +131,76 @@ const Chat = {
   handleSend() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
+    // #region agent log
+    if (window.__TAURI__?.core?.invoke) {
+      window.__TAURI__.core.invoke('debug_log_command', {
+        location: 'chat.js:handleSend:entry:tauri',
+        message: 'handleSend invoked from chat UI',
+        data: JSON.stringify({ textLength: text.length }),
+        runId: 'pre-fix',
+        hypothesisId: 'H9'
+      }).catch(() => {});
+    }
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H9',location:'chat.js:handleSend:entry',message:'handleSend invoked from chat UI',data:{textLength:text.length},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     if (!text) return;
-
-    this.addUserMessage(text);
     input.value = '';
     input.style.height = 'auto';
 
     // Send to backend via App
-    App.sendMessage(text);
+    // #region agent log
+    if (window.__TAURI__?.core?.invoke) {
+      window.__TAURI__.core.invoke('debug_log_command', {
+        location: 'chat.js:handleSend:tauri',
+        message: 'Chat dispatch about to call App method',
+        data: JSON.stringify({ textLength: text.length, hasSendMessage: typeof App?.sendMessage === 'function', hasSendChatMessage: typeof App?.sendChatMessage === 'function' }),
+        runId: 'pre-fix',
+        hypothesisId: 'H2'
+      }).catch(() => {});
+    }
+    fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H2',location:'chat.js:handleSend',message:'Attempting to dispatch chat message via App',data:{textLength:text.length,hasSendMessage:typeof App?.sendMessage==='function',hasSendChatMessage:typeof App?.sendChatMessage==='function'},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    try {
+      App.sendChatMessage(text);
+    } catch (error) {
+      // #region agent log
+      if (window.__TAURI__?.core?.invoke) {
+        window.__TAURI__.core.invoke('debug_log_command', {
+          location: 'chat.js:handleSend:catch:tauri',
+          message: 'App.sendMessage threw in chat send',
+          data: JSON.stringify({ errorName: error?.name || 'unknown', errorMessage: error?.message || 'unknown' }),
+          runId: 'pre-fix',
+          hypothesisId: 'H2'
+        }).catch(() => {});
+      }
+      fetch('http://127.0.0.1:7530/ingest/c75c5685-c11a-466d-a1fb-9a520f337f0f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'48444a'},body:JSON.stringify({sessionId:'48444a',runId:'pre-fix',hypothesisId:'H2',location:'chat.js:handleSend:catch',message:'Dispatch failed while calling App.sendMessage',data:{errorName:error?.name||'unknown',errorMessage:error?.message||'unknown'},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      throw error;
+    }
   },
 
   addUserMessage(text) {
-    const container = document.getElementById('chat-messages');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message-user';
-    msgDiv.innerHTML = `<div class="message-user-body">${this.escapeHtml(text)}</div>`;
-    container.appendChild(msgDiv);
-    this.scrollToBottom();
+    this._renderUserMessage(text);
     this.messages.push({ role: 'user', content: text });
+    this.saveHistory(App.currentProject);
+    this.scrollToBottom();
   },
 
   addAIMessage(text) {
-    const container = document.getElementById('chat-messages');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message-ai';
-    msgDiv.innerHTML = `
-      <span class="message-ai-label">DOM</span>
-      <div class="message-ai-body">${text}</div>
-    `;
-    msgDiv.style.opacity = '0';
-    container.appendChild(msgDiv);
+    const msgDiv = this._renderAIMessage(text);
 
-    // Fade in
-    requestAnimationFrame(() => {
-      msgDiv.style.transition = 'opacity 300ms ease';
-      msgDiv.style.opacity = '1';
-    });
+    // Fade in only for new messages (not restored ones)
+    if (msgDiv) {
+      msgDiv.style.opacity = '0';
+      requestAnimationFrame(() => {
+        msgDiv.style.transition = 'opacity 300ms ease';
+        msgDiv.style.opacity = '1';
+      });
+    }
 
-    this.scrollToBottom();
     this.messages.push({ role: 'assistant', content: text });
+    this.saveHistory(App.currentProject);
+    this.scrollToBottom();
   },
 
   addSystemMessage(text) {
@@ -100,8 +225,6 @@ const Chat = {
   hideTyping() {
     document.getElementById('typing-indicator').style.display = 'none';
   },
-
-  // Removed simulateAgentResponse as it is now handled by the real backend
 
   scrollToBottom() {
     const container = document.getElementById('chat-messages');
