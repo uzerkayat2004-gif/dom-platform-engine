@@ -7,7 +7,7 @@ in the app creation journey for each project.
 import json
 from pathlib import Path
 from dataclasses import dataclass, field, asdict
-from typing import List, Optional
+from typing import List
 from enum import Enum
 
 class CreationStep(str, Enum):
