@@ -110,17 +110,21 @@ const GlassBox = {
         const data = await response.json();
         const log = document.getElementById('glassbox-log');
 
-        if (log && data.entries && data.entries.length > 0) {
+        if (log) {
             log.innerHTML = '';
             this.entryCount = 0;
             this.blockedCount = 0;
             this.passedCount = 0;
             
-            // Backend now returns structured entries
-            data.entries.forEach(entry => {
-                const type = entry.is_blocked ? 'blocked' : 'passed';
-                this.addEntry(type, entry);
-            });
+            if (data.entries && data.entries.length > 0) {
+                // Backend now returns structured entries
+                data.entries.forEach(entry => {
+                    const type = entry.is_blocked ? 'blocked' : 'passed';
+                    this.addEntry(type, entry);
+                });
+            } else {
+                this.updateStats();
+            }
         }
     } catch (e) {
         console.error('Failed to load glass box history:', e);

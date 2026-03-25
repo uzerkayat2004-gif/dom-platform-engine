@@ -217,7 +217,6 @@ const App = {
         drawer.classList.add('open');
         toggleBtn.classList.add('active');
 
-        // Fix 8: Real Data
         if (this.currentProject) {
             GlassBox.loadGlassBoxHistory(this.currentProject);
         }

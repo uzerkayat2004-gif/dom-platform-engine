@@ -26,7 +26,7 @@ def validate_path(project_id: str) -> Path:
 
     project_path = Path("projects") / project_id
     if not project_path.resolve().is_relative_to(Path("projects").resolve()):
-         raise HTTPException(status_code=400, detail="Invalid project path")
+        raise HTTPException(status_code=400, detail="Invalid project path")
     return project_path
 
 app.add_middleware(
