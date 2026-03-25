@@ -81,24 +81,22 @@ class FineTuner:
                     bnb_4bit_quant_type="nf4",
                     bnb_4bit_compute_dtype=torch.bfloat16
                 )
-                tokenizer = AutoTokenizer.from_pretrained(self.BASE_MODEL, cache_dir="D:/RestaurantPOS/cache")
+                tokenizer = AutoTokenizer.from_pretrained(self.BASE_MODEL)
                 if tokenizer.pad_token is None:
                     tokenizer.pad_token = tokenizer.eos_token
                 model = AutoModelForCausalLM.from_pretrained(
                     self.BASE_MODEL,
                     quantization_config=bnb_config,
-                    device_map="auto",
-                    cache_dir="D:/RestaurantPOS/cache"
+                    device_map="auto"
                 )
                 model = prepare_model_for_kbit_training(model)
             else:
-                tokenizer = AutoTokenizer.from_pretrained(self.BASE_MODEL, cache_dir="D:/RestaurantPOS/cache")
+                tokenizer = AutoTokenizer.from_pretrained(self.BASE_MODEL)
                 if tokenizer.pad_token is None:
                     tokenizer.pad_token = tokenizer.eos_token
                 model = AutoModelForCausalLM.from_pretrained(
                     self.BASE_MODEL,
-                    torch_dtype=torch.float32,
-                    cache_dir="D:/RestaurantPOS/cache"
+                    torch_dtype=torch.float32
                 )
 
             # Apply LoRA
