@@ -136,7 +136,6 @@ const Workspace = {
             </div>`;
         }
     } catch (e) {
-        console.log('File tree refresh failed:', e);
     }
   },
   
