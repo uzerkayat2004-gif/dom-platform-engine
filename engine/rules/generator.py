@@ -4,7 +4,6 @@ Creates and manages the four constitutional rule files for each project.
 These rule files become the DNA of the DOM model.
 """
 
-import json
 from pathlib import Path
 from typing import List
 
