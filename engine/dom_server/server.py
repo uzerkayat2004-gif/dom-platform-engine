@@ -7,9 +7,6 @@ Every button in the generated frontend sends a plain English instruction here.
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import threading
-import json
-from pathlib import Path
 
 from engine.dom_server.rule_enforcer import RuleEnforcer
 from engine.dom_server.inference import DOMInference
