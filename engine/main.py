@@ -10,6 +10,7 @@ from pydantic import BaseModel
 import uvicorn
 import asyncio
 import json
+import os
 import shutil
 import threading
 import re
@@ -21,7 +22,7 @@ app = FastAPI(title="DOM Platform Engine", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://127.0.0.1:8080", "http://localhost:8080", "tauri://localhost", "https://tauri.localhost"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -170,6 +171,8 @@ async def list_projects():
 @app.get("/conversation/{project_id}")
 async def get_conversation(project_id: str):
     """Return saved conversation history for a project."""
+    if not project_id or os.path.basename(project_id) != project_id or project_id in (".", ".."):
+        raise HTTPException(status_code=400, detail="Invalid project_id")
     convo_path = Path(f"projects/{project_id}/conversation.json")
     validate_path(convo_path)
     if not convo_path.exists():
