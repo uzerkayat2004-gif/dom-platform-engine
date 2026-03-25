@@ -4,9 +4,6 @@ Interface to the LLM4Binary model for x86/ARM assembly generation.
 Translates plain English instructions into hardware language.
 """
 
-from pathlib import Path
-from typing import Optional
-
 class HardwareBridge:
     
     def __init__(self):
