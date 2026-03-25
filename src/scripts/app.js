@@ -638,11 +638,28 @@ async function onAppStart() {
   
   const lastProject = localStorage.getItem('dom_last_project');
   if (lastProject) {
-      const projectEl = document.querySelector(`.sidebar-project[data-id="${lastProject}"]`);
-      if (projectEl) {
-          projectEl.click();
+      const projectElement = document.querySelector(`.sidebar-project[data-id="${lastProject}"]`);
+      if (projectElement) {
+          projectElement.click();
       } else {
           App.currentProject = lastProject;
+          App.transitionToActive('');
+          Chat.restoreHistory(lastProject);
+          // Get the display name from localStorage index or fallback to ID formatting
+          let projectName = lastProject;
+          try {
+              const index = JSON.parse(localStorage.getItem('dom_projects_index') || '[]');
+              const p = index.find(p => p.name === lastProject);
+              if (p && p.display) {
+                  projectName = p.display;
+              } else {
+                  projectName = lastProject.replace(/-/g, ' ').replace(/\b\w/g, c=>c.toUpperCase());
+              }
+          } catch (e) {
+              projectName = lastProject.replace(/-/g, ' ').replace(/\b\w/g, c=>c.toUpperCase());
+          }
+          document.getElementById('titlebar-project-name').textContent = projectName;
+          document.getElementById('chat-project-title').textContent = projectName;
       }
   }
 }
