@@ -22,7 +22,12 @@ app = FastAPI(title="DOM Platform Engine", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8080", "http://localhost:8080", "tauri://localhost", "https://tauri.localhost"],
+    allow_origins=[
+        "http://127.0.0.1:8080",
+        "http://localhost:8080",
+        "tauri://localhost",
+        "https://tauri.localhost",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -115,6 +120,20 @@ async def chat(data: ChatMessage):
         }
 
 
+def sanitize_path_param(param: str) -> str:
+    """Sanitize a path parameter to prevent path traversal."""
+    if not param or "/" in param or "\\" in param or param in (".", ".."):
+        raise HTTPException(status_code=400, detail="Invalid path parameter")
+    return param
+
+
+def sanitize_project_id(project_id: str) -> str:
+    """Validate project ID against allowlist regex."""
+    if not project_id or not re.match(r"^[a-zA-Z0-9 _-]+$", project_id):
+        raise HTTPException(status_code=400, detail="Invalid project_id format")
+    return project_id
+
+
 def validate_path(path: Path):
     """Ensure the path is within the projects directory."""
     base_dir = Path("projects").resolve()
@@ -135,7 +154,8 @@ def validate_path(path: Path):
 @app.post("/project/create")
 async def create_project(data: ProjectCreate):
     """Create a new project folder structure."""
-    project_path = Path(f"projects/{data.name}")
+    safe_name = sanitize_project_id(data.name)
+    project_path = Path(f"projects/{safe_name}")
     validate_path(project_path)
     project_path.mkdir(parents=True, exist_ok=True)
     (project_path / "rules").mkdir(exist_ok=True)
@@ -171,9 +191,8 @@ async def list_projects():
 @app.get("/conversation/{project_id}")
 async def get_conversation(project_id: str):
     """Return saved conversation history for a project."""
-    if not project_id or os.path.basename(project_id) != project_id or project_id in (".", ".."):
-        raise HTTPException(status_code=400, detail="Invalid project_id")
-    convo_path = Path(f"projects/{project_id}/conversation.json")
+    safe_id = sanitize_project_id(project_id)
+    convo_path = Path(f"projects/{safe_id}/conversation.json")
     validate_path(convo_path)
     if not convo_path.exists():
         return {"messages": [], "step": "describing"}
@@ -197,7 +216,8 @@ async def clear_projects():
 @app.get("/project/{project_id}")
 async def get_project(project_id: str):
     """Get project status and config."""
-    config_path = Path(f"projects/{project_id}/config.json")
+    safe_id = sanitize_project_id(project_id)
+    config_path = Path(f"projects/{safe_id}/config.json")
     validate_path(config_path)
     if not config_path.exists():
         return {"error": "Project not found"}
@@ -220,7 +240,9 @@ async def test_api_key(data: ApiKeyTest):
 @app.get("/rule-file/{project_id}/{filename}")
 async def get_rule_file(project_id: str, filename: str):
     """Get the content of a specific rule file."""
-    file_path = Path(f"projects/{project_id}/rules/{filename}")
+    safe_id = sanitize_project_id(project_id)
+    safe_file = sanitize_path_param(filename)
+    file_path = Path(f"projects/{safe_id}/rules/{safe_file}")
     validate_path(file_path)
     if not file_path.exists():
         return {"content": None, "exists": False}
@@ -230,10 +252,8 @@ async def get_rule_file(project_id: str, filename: str):
 @app.get("/project-files/{project_id}")
 async def get_project_files(project_id: str):
     """List all files in a project directory."""
-    if not re.match(r"^[a-zA-Z0-9_-]+$", project_id):
-        raise HTTPException(status_code=400, detail="Invalid project_id format")
-
-    project_path = Path(f"projects/{project_id}")
+    safe_id = sanitize_project_id(project_id)
+    project_path = Path(f"projects/{safe_id}")
     validate_path(project_path)
     if not project_path.exists():
         return {"files": []}
@@ -254,8 +274,9 @@ class TrainRequest(BaseModel):
 @app.post("/train/{project_id}")
 async def start_training(project_id: str, data: TrainRequest):
     """Start DOM model training for a project."""
-    asyncio.create_task(run_training(project_id, data.provider, data.api_key))
-    return {"status": "started", "project_id": project_id}
+    safe_id = sanitize_project_id(project_id)
+    asyncio.create_task(run_training(safe_id, data.provider, data.api_key))
+    return {"status": "started", "project_id": safe_id}
 
 
 async def run_training(project_id: str, provider: str, api_key: str):
@@ -300,11 +321,12 @@ async def start_dom(data: StartDOMServer):
     """Start the DOM server for a project in a background thread."""
     from engine.dom_server.server import start_dom_server
 
+    safe_id = sanitize_project_id(data.project_id)
     thread = threading.Thread(
-        target=start_dom_server, args=(data.project_id, data.port), daemon=True
+        target=start_dom_server, args=(safe_id, data.port), daemon=True
     )
     thread.start()
-    return {"status": "started", "port": data.port, "project_id": data.project_id}
+    return {"status": "started", "port": data.port, "project_id": safe_id}
 
 
 class BuildFrontend(BaseModel):
@@ -320,8 +342,9 @@ async def build_frontend(data: BuildFrontend):
     """Generate the app frontend."""
     from engine.frontend_builder.builder import FrontendBuilder
 
+    safe_id = sanitize_project_id(data.project_id)
     builder = FrontendBuilder(
-        project_id=data.project_id,
+        project_id=safe_id,
         provider_name=data.provider,
         api_key=data.api_key,
         broadcast_fn=broadcast,
@@ -333,7 +356,8 @@ async def build_frontend(data: BuildFrontend):
 @app.get("/frontend/{project_id}")
 async def get_frontend(project_id: str):
     """Get the generated frontend HTML."""
-    frontend_path = Path(f"projects/{project_id}/frontend/index.html")
+    safe_id = sanitize_project_id(project_id)
+    frontend_path = Path(f"projects/{safe_id}/frontend/index.html")
     validate_path(frontend_path)
     if not frontend_path.exists():
         return {"error": "Frontend not built yet"}
@@ -347,7 +371,9 @@ class DeployProject(BaseModel):
 @app.post("/deploy")
 async def deploy_project(data: DeployProject):
     """Deploy the project by preparing it for distribution or local execution."""
-    project_path = Path(f"projects/{data.project_id}")
+    safe_id = sanitize_project_id(data.project_id)
+    project_path = Path(f"projects/{safe_id}")
+    
     if not project_path.exists():
         return {"status": "error", "message": "Project not found"}
 
@@ -367,6 +393,37 @@ async def deploy_project(data: DeployProject):
             "message": "Model not trained yet. Training required before deployment.",
         }
 
+    return {
+        "status": "success",
+        "message": "Project ready for deployment",
+        "project_id": safe_id,
+        "deployment_info": {
+            "frontend_path": str(frontend_path),
+            "model_path": str(model_path),
+            "rules_path": str(project_path / "rules"),
+            "note": "To deploy: package frontend, trained model, and rules. The frontend communicates with the local DOM model on port 5000.",
+        },
+    }
+    if not project_path.exists():
+        return {"status": "error", "message": "Project not found"}
+
+    # Check if frontend is built
+    frontend_path = project_path / "frontend" / "index.html"
+    if not frontend_path.exists():
+        return {
+            "status": "error",
+            "message": "Frontend not built yet. Train the model first.",
+        }
+
+    # Check if model is trained
+    model_path = project_path / "model" / "adapter"
+    if not model_path.exists():
+        return {
+            "status": "error",
+            "message": "Model not trained yet. Training required before deployment.",
+        }
+
+<<<<<<< HEAD
     # For now, return deployment information
     # In a full implementation, this would:
     # 1. Package the frontend + model + rules into a distributable format
@@ -377,6 +434,12 @@ async def deploy_project(data: DeployProject):
         "status": "success",
         "message": "Project ready for deployment",
         "project_id": data.project_id,
+=======
+    return {
+        "status": "success",
+        "message": "Project ready for deployment",
+        "project_id": safe_id,
+>>>>>>> fix-path-traversal-engine-main-9796105255672830460
         "deployment_info": {
             "frontend_path": str(frontend_path),
             "model_path": str(model_path),
