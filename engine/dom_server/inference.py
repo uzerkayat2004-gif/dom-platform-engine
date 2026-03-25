@@ -114,120 +114,135 @@ RESULT:"""
         Handles instructions when DOM model is not yet trained.
         Used for demos and testing.
         """
-        import re
         instruction_lower = instruction.lower()
         
-        # ADD ITEM
-        if any(kw in instruction_lower for kw in ["add", "order"]):
-            price_match = re.search(r'(\d+)\s*rupees?', instruction_lower)
-            item_match = re.search(
-                r'(?:add|order)\s+(?:one|two|three|\d+)?\s*(.+?)(?:\s+at|\s+for|\s+rupees|$)',
-                instruction_lower
-            )
-            
-            if price_match:
-                price = int(price_match.group(1))
-                item_name = item_match.group(1).strip() if item_match else "item"
-                qty_match = re.search(r'(\d+|one|two|three)', instruction_lower)
-                qty_map = {"one": 1, "two": 2, "three": 3}
-                qty = qty_map.get(qty_match.group(1), 1) if qty_match else 1
-                if qty_match and qty_match.group(1).isdigit():
-                    qty = int(qty_match.group(1))
-                
-                total_price = price * qty
-                self.state["order"]["items"].append({
-                    "name": item_name.title(),
-                    "price": price,
-                    "qty": qty,
-                    "total": total_price
-                })
-                self.state["order"]["total"] += total_price
-                
-                return {
-                    "action": "item_added",
-                    "display": f"Added {qty}x {item_name.title()} @ Rs.{price} each",
-                    "data": {"order": self.state["order"]},
-                    "assembly": f"mov eax, {price}\nmov ebx, [total]\nadd ebx, eax\nmov [total], ebx",
-                    "rule_check": "PASSED"
-                }
+        handlers = [
+            (["add", "order"], self._handle_add_item),
+            (["discount", "percent off", "% off"], self._handle_discount),
+            (["kitchen", "send order"], self._handle_kitchen),
+            (["payment", "pay", "process payment", "checkout"], self._handle_payment),
+            (["new order", "clear", "reset", "start over"], self._handle_new_order),
+            (["report", "sales", "summary", "analytics"], self._handle_report),
+            (["show order", "current order", "what's in"], self._handle_show_order),
+        ]
+
+        for keywords, handler in handlers:
+            if any(kw in instruction_lower for kw in keywords):
+                result = handler(instruction_lower)
+                if result:
+                    return result
+                break  # If a keyword matched but its handler didn't return a result, skip remaining and go to default
+
+        return self._handle_default(instruction)
+
+    def _handle_add_item(self, instruction_lower: str) -> dict | None:
+        import re
+        price_match = re.search(r'(\d+)\s*rupees?', instruction_lower)
+        item_match = re.search(
+            r'(?:add|order)\s+(?:one|two|three|\d+)?\s*(.+?)(?:\s+at|\s+for|\s+rupees|$)',
+            instruction_lower
+        )
         
-        # DISCOUNT
-        elif any(kw in instruction_lower for kw in ["discount", "percent off", "% off"]):
-            pct_match = re.search(r'(\d+)\s*(?:percent|%)', instruction_lower)
-            if pct_match and self.state["order"]["total"] > 0:
-                pct = int(pct_match.group(1))
-                discount_amount = int(self.state["order"]["total"] * pct / 100)
-                self.state["order"]["total"] -= discount_amount
-                return {
-                    "action": "discount_applied",
-                    "display": f"{pct}% discount applied — Saved Rs.{discount_amount} — New total: Rs.{self.state['order']['total']}",
-                    "data": {"order": self.state["order"]},
-                    "assembly": f"mov eax, [total]\nmov ebx, {pct}\nimul eax, ebx\nidiv dword 100\nsub [total], eax",
-                    "rule_check": "PASSED"
-                }
-        
-        # KITCHEN
-        elif any(kw in instruction_lower for kw in ["kitchen", "send order"]):
-            items = self.state["order"]["items"]
+        if price_match:
+            price = int(price_match.group(1))
+            item_name = item_match.group(1).strip() if item_match else "item"
+            qty_match = re.search(r'(\d+|one|two|three)', instruction_lower)
+            qty_map = {"one": 1, "two": 2, "three": 3}
+            qty = qty_map.get(qty_match.group(1), 1) if qty_match else 1
+            if qty_match and qty_match.group(1).isdigit():
+                qty = int(qty_match.group(1))
+
+            total_price = price * qty
+            self.state["order"]["items"].append({
+                "name": item_name.title(),
+                "price": price,
+                "qty": qty,
+                "total": total_price
+            })
+            self.state["order"]["total"] += total_price
+
             return {
-                "action": "order_sent_kitchen",
-                "display": f"Order sent to kitchen — {len(items)} item(s) — Rs.{self.state['order']['total']}",
+                "action": "item_added",
+                "display": f"Added {qty}x {item_name.title()} @ Rs.{price} each",
                 "data": {"order": self.state["order"]},
-                "assembly": "mov eax, [order_id]\nmov [kitchen_status], dword 1\nmov [kitchen_time], dword [current_time]",
+                "assembly": f"mov eax, {price}\nmov ebx, [total]\nadd ebx, eax\nmov [total], ebx",
                 "rule_check": "PASSED"
             }
-        
-        # PAYMENT
-        elif any(kw in instruction_lower for kw in ["payment", "pay", "process payment", "checkout"]):
-            total = self.state["order"]["total"]
-            items = list(self.state["order"]["items"])
-            self.state["order"] = {"items": [], "total": 0}
+        return None
+
+    def _handle_discount(self, instruction_lower: str) -> dict | None:
+        import re
+        pct_match = re.search(r'(\d+)\s*(?:percent|%)', instruction_lower)
+        if pct_match and self.state["order"]["total"] > 0:
+            pct = int(pct_match.group(1))
+            discount_amount = int(self.state["order"]["total"] * pct / 100)
+            self.state["order"]["total"] -= discount_amount
             return {
-                "action": "payment_processed",
-                "display": f"Payment of Rs.{total} processed — Receipt generated",
-                "data": {"paid": total, "items": items},
-                "assembly": "mov eax, [total_amount]\nmov [payment_status], dword 1\nmov [receipt_flag], dword 1",
-                "rule_check": "PASSED"
-            }
-        
-        # NEW ORDER
-        elif any(kw in instruction_lower for kw in ["new order", "clear", "reset", "start over"]):
-            self.state["order"] = {"items": [], "total": 0}
-            return {
-                "action": "new_order",
-                "display": "New order started — ready for items",
+                "action": "discount_applied",
+                "display": f"{pct}% discount applied — Saved Rs.{discount_amount} — New total: Rs.{self.state['order']['total']}",
                 "data": {"order": self.state["order"]},
-                "assembly": "mov [order_id], dword 0\nmov [total], dword 0\nmov [item_count], dword 0",
+                "assembly": f"mov eax, [total]\nmov ebx, {pct}\nimul eax, ebx\nidiv dword 100\nsub [total], eax",
                 "rule_check": "PASSED"
             }
-        
-        # REPORT
-        elif any(kw in instruction_lower for kw in ["report", "sales", "summary", "analytics"]):
-            return {
-                "action": "report_generated",
-                "display": "Daily sales report generated",
-                "data": {"report": "Available in reports panel"},
-                "assembly": "mov eax, [daily_total]\nmov [report_flag], dword 1",
-                "rule_check": "PASSED"
-            }
-        
-        # SHOW ORDER
-        elif any(kw in instruction_lower for kw in ["show order", "current order", "what's in"]):
-            order = self.state["order"]
-            if not order["items"]:
-                display = "Order is empty"
-            else:
-                lines = [f"{i['qty']}x {i['name']} @ Rs.{i['price']}" for i in order["items"]]
-                display = "\n".join(lines) + f"\nTotal: Rs.{order['total']}"
-            return {
-                "action": "order_displayed",
-                "display": display,
-                "data": {"order": order},
-                "assembly": "mov eax, [order_data]\npush eax\ncall display_order",
-                "rule_check": "PASSED"
-            }
-        
-        # DEFAULT
+        return None
+
+    def _handle_kitchen(self, instruction_lower: str) -> dict:
+        items = self.state["order"]["items"]
+        return {
+            "action": "order_sent_kitchen",
+            "display": f"Order sent to kitchen — {len(items)} item(s) — Rs.{self.state['order']['total']}",
+            "data": {"order": self.state["order"]},
+            "assembly": "mov eax, [order_id]\nmov [kitchen_status], dword 1\nmov [kitchen_time], dword [current_time]",
+            "rule_check": "PASSED"
+        }
+
+    def _handle_payment(self, instruction_lower: str) -> dict:
+        total = self.state["order"]["total"]
+        items = list(self.state["order"]["items"])
+        self.state["order"] = {"items": [], "total": 0}
+        return {
+            "action": "payment_processed",
+            "display": f"Payment of Rs.{total} processed — Receipt generated",
+            "data": {"paid": total, "items": items},
+            "assembly": "mov eax, [total_amount]\nmov [payment_status], dword 1\nmov [receipt_flag], dword 1",
+            "rule_check": "PASSED"
+        }
+
+    def _handle_new_order(self, instruction_lower: str) -> dict:
+        self.state["order"] = {"items": [], "total": 0}
+        return {
+            "action": "new_order",
+            "display": "New order started — ready for items",
+            "data": {"order": self.state["order"]},
+            "assembly": "mov [order_id], dword 0\nmov [total], dword 0\nmov [item_count], dword 0",
+            "rule_check": "PASSED"
+        }
+
+    def _handle_report(self, instruction_lower: str) -> dict:
+        return {
+            "action": "report_generated",
+            "display": "Daily sales report generated",
+            "data": {"report": "Available in reports panel"},
+            "assembly": "mov eax, [daily_total]\nmov [report_flag], dword 1",
+            "rule_check": "PASSED"
+        }
+
+    def _handle_show_order(self, instruction_lower: str) -> dict:
+        order = self.state["order"]
+        if not order["items"]:
+            display = "Order is empty"
+        else:
+            lines = [f"{i['qty']}x {i['name']} @ Rs.{i['price']}" for i in order["items"]]
+            display = "\n".join(lines) + f"\nTotal: Rs.{order['total']}"
+        return {
+            "action": "order_displayed",
+            "display": display,
+            "data": {"order": order},
+            "assembly": "mov eax, [order_data]\npush eax\ncall display_order",
+            "rule_check": "PASSED"
+        }
+
+    def _handle_default(self, instruction: str) -> dict:
         return {
             "action": "processed",
             "display": f"Instruction processed: {instruction}",
