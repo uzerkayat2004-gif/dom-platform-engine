@@ -27,6 +27,14 @@ class FineTuner:
     async def _noop(x):
         pass
 
+    def _read_training_data(self):
+        examples = []
+        with open(self.data_path, encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    examples.append(json.loads(line.strip()))
+        return examples
+
     async def run(self):
         """Run the full fine-tuning pipeline."""
 
@@ -41,11 +49,7 @@ class FineTuner:
             from datasets import Dataset
 
             # Load training data
-            examples = []
-            with open(self.data_path, encoding="utf-8") as f:
-                for line in f:
-                    if line.strip():
-                        examples.append(json.loads(line.strip()))
+            examples = await asyncio.to_thread(self._read_training_data)
 
             await self._broadcast_msg(f"Training data loaded: {len(examples)} examples")
 
