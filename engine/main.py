@@ -22,7 +22,7 @@ app = FastAPI(title="DOM Platform Engine", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://127.0.0.1:8080", "http://localhost:8080", "tauri://localhost", "https://tauri.localhost"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
