@@ -7,7 +7,6 @@ security is enforced before execution, not after.
 """
 
 import re
-from pathlib import Path
 from engine.rules.generator import RuleGenerator
 
 class RuleEnforcer:
