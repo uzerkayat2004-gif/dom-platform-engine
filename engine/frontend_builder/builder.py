@@ -11,14 +11,14 @@ from typing import Callable, Optional
 from engine.primary_agent.providers import get_provider
 from engine.rules.generator import RuleGenerator
 
+
 class FrontendBuilder:
-    
     def __init__(
         self,
         project_id: str,
         provider_name: str,
         api_key: str,
-        broadcast_fn: Optional[Callable] = None
+        broadcast_fn: Optional[Callable] = None,
     ):
         self.project_id = project_id
         self.provider = get_provider(provider_name, api_key)
@@ -26,18 +26,17 @@ class FrontendBuilder:
         self.broadcast = broadcast_fn or (lambda x: None)
         self.output_dir = Path(f"projects/{project_id}/frontend")
         self.output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     async def build(self, domain: str, app_name: str) -> dict:
         """Generate complete frontend for the app."""
-        
-        await self.broadcast({
-            "type": "frontend_building",
-            "project_id": self.project_id
-        })
-        
+
+        await self.broadcast(
+            {"type": "frontend_building", "project_id": self.project_id}
+        )
+
         skills = self.rule_gen.read("skills_md")
         limits = self.rule_gen.read("limits_md")
-        
+
         prompt = f"""Generate a complete, premium HTML frontend for a {domain} application called "{app_name}".
 
 Skills this app can perform:
@@ -63,35 +62,38 @@ Requirements:
 
 Return the complete HTML as a single string. Include ALL CSS in a style tag. No explanations.
 """
-        
+
         html_content = await self.provider.send_message(
             messages=[{"role": "user", "content": prompt}],
             max_tokens=4000,
-            temperature=0.3
+            temperature=0.3,
         )
-        
+
         # Clean up response
         if "```html" in html_content:
             html_content = html_content.split("```html")[1].split("```")[0].strip()
         elif "```" in html_content:
-            html_content = html_content.split("```")[1].split("```")[0].strip()
-        
+            # Handle cases like ```json or just ```
+            parts = html_content.split("```")
+            if len(parts) >= 3:
+                html_content = parts[1].strip()
+            else:
+                html_content = parts[0].strip() if parts else html_content
+
         # Save frontend files
         index_path = self.output_dir / "index.html"
         index_path.write_text(html_content)
-        
-        await self.broadcast({
-            "type": "frontend_ready",
-            "project_id": self.project_id,
-            "path": str(index_path)
-        })
-        
-        return {
-            "success": True,
-            "path": str(index_path),
-            "html": html_content
-        }
-    
+
+        await self.broadcast(
+            {
+                "type": "frontend_ready",
+                "project_id": self.project_id,
+                "path": str(index_path),
+            }
+        )
+
+        return {"success": True, "path": str(index_path), "html": html_content}
+
     def get_frontend_path(self) -> Optional[str]:
         """Get path to generated frontend if it exists."""
         index_path = self.output_dir / "index.html"
