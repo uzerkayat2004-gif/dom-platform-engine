@@ -274,7 +274,6 @@ const App = {
     try {
       const wsUrl = this.apiBase.replace(/^http/, 'ws') + '/ws';
       this.ws = new WebSocket(wsUrl);
-      this.ws.onopen = () => console.log('Connected to DOM Engine WS');
       this.ws.onmessage = (e) => this.handleEngineMessage(JSON.parse(e.data));
       this.ws.onclose = () => setTimeout(() => this.connectWebSocket(), 3000);
     } catch (err) {
