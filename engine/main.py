@@ -190,14 +190,32 @@ async def get_project_files(project_id: str):
                 files.append({"name": f.name, "path": str(f), "size": f.stat().st_size})
     return {"files": files, "project_id": project_id}
 
+class TrainRequest(BaseModel):
+    provider: str = "groq"
+    api_key: str = ""
+
 @app.post("/train/{project_id}")
-async def start_training(project_id: str):
+async def start_training(project_id: str, data: TrainRequest):
     """Start DOM model training for a project."""
-    asyncio.create_task(run_training(project_id))
+    asyncio.create_task(run_training(project_id, data.provider, data.api_key))
     return {"status": "started", "project_id": project_id}
 
-async def run_training(project_id: str):
+async def run_training(project_id: str, provider: str, api_key: str):
+    from engine.training.data_generator import TrainingDataGenerator
     from engine.training.fine_tuner import FineTuner
+    
+    # 1. Generate Dataset using Primary (Groq) and Secondary (Nova)
+    await broadcast({"type": "training_progress", "message": "Phase 1: Generating training data...", "project_id": project_id})
+    generator = TrainingDataGenerator(
+        project_id=project_id,
+        provider_name=provider,
+        api_key=api_key,
+        broadcast_fn=broadcast
+    )
+    await generator.generate(count=15)
+    
+    # 2. Fine-Tune the small model
+    await broadcast({"type": "training_progress", "message": "Phase 2: Fine-Tuning the model...", "project_id": project_id})
     tuner = FineTuner(project_id=project_id, broadcast_fn=broadcast)
     await tuner.run()
 

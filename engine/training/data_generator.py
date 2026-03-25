@@ -64,7 +64,19 @@ Return ONLY the JSON array."""
                 if clean.startswith("json"):
                     clean = clean[4:]
             examples = json.loads(clean)
-        except:
+            
+            # Use the secondary Hardware Language Model to produce training code for the small model
+            from engine.training.hardware_bridge import hardware_bridge
+            import asyncio
+            for ex in examples:
+                if "PASSED" in str(ex.get("rule_check", "")):
+                    ex["assembly"] = await asyncio.to_thread(
+                        hardware_bridge.generate_assembly, ex.get("instruction", "Unknown")
+                    )
+                else:
+                    ex["assembly"] = "; BLOCKED\n; Rule violation detected"
+        except Exception as e:
+            print(f"Data generation processing error: {e}")
             examples = self._get_fallback_examples()
         
         # Save as JSONL

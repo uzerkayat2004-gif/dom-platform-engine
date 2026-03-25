@@ -444,7 +444,14 @@ const App = {
     if (building) building.style.display = '';
     Activity.training('Starting training...');
     try {
-      await fetch(`${this.apiBase}/train/${this.currentProject}`, { method: 'POST' });
+      await fetch(`${this.apiBase}/train/${this.currentProject}`, { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              provider: this.getSavedProvider(),
+              api_key: this.getSavedApiKey()
+          })
+      });
     } catch (err) {
       console.error('Training start failed:', err);
     }
