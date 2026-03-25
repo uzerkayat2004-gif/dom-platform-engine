@@ -10,6 +10,7 @@ from pydantic import BaseModel
 import uvicorn
 import asyncio
 import json
+import os
 import shutil
 import threading
 import re
@@ -167,6 +168,8 @@ async def list_projects():
 @app.get("/conversation/{project_id}")
 async def get_conversation(project_id: str):
     """Return saved conversation history for a project."""
+    if not project_id or os.path.basename(project_id) != project_id or project_id in (".", ".."):
+        raise HTTPException(status_code=400, detail="Invalid project_id")
     convo_path = Path(f"projects/{project_id}/conversation.json")
     validate_path(convo_path)
     if not convo_path.exists():
