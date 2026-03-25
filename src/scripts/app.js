@@ -178,7 +178,9 @@ const App = {
 
       // Initial User Message is handled by transitionToActive caller,
       // but let's actually send it to the engine now:
-      this.sendChatMessage(initialMessage);
+      if (initialMessage) {
+        this.sendChatMessage(initialMessage);
+      }
 
       // Clean up animation classes after they complete
       setTimeout(() => {
