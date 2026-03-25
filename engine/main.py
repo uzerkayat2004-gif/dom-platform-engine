@@ -111,6 +111,12 @@ def validate_path(path: Path):
         raise HTTPException(status_code=400, detail="Path traversal detected")
     return resolved_path
 
+def sanitize_path_segment(segment: str) -> str:
+    """Sanitize a path segment to prevent path traversal."""
+    if "/" in segment or "\\" in segment or segment == ".." or segment == ".":
+        raise HTTPException(status_code=400, detail="Invalid path segment")
+    return segment
+
 @app.post("/project/create")
 async def create_project(data: ProjectCreate):
     """Create a new project folder structure."""
@@ -148,6 +154,7 @@ async def list_projects():
 @app.get("/conversation/{project_id}")
 async def get_conversation(project_id: str):
     """Return saved conversation history for a project."""
+    project_id = sanitize_path_segment(project_id)
     convo_path = Path(f"projects/{project_id}/conversation.json")
     validate_path(convo_path)
     if not convo_path.exists():
@@ -170,6 +177,7 @@ async def clear_projects():
 @app.get("/project/{project_id}")
 async def get_project(project_id: str):
     """Get project status and config."""
+    project_id = sanitize_path_segment(project_id)
     config_path = Path(f"projects/{project_id}/config.json")
     validate_path(config_path)
     if not config_path.exists():
@@ -190,6 +198,8 @@ async def test_api_key(data: ApiKeyTest):
 @app.get("/rule-file/{project_id}/{filename}")
 async def get_rule_file(project_id: str, filename: str):
     """Get the content of a specific rule file."""
+    project_id = sanitize_path_segment(project_id)
+    filename = sanitize_path_segment(filename)
     file_path = Path(f"projects/{project_id}/rules/{filename}")
     validate_path(file_path)
     if not file_path.exists():
@@ -199,6 +209,7 @@ async def get_rule_file(project_id: str, filename: str):
 @app.get("/project-files/{project_id}")
 async def get_project_files(project_id: str):
     """List all files in a project directory."""
+    project_id = sanitize_path_segment(project_id)
     project_path = Path(f"projects/{project_id}")
     validate_path(project_path)
     if not project_path.exists():
