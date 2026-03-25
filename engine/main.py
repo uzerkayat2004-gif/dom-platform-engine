@@ -95,6 +95,12 @@ async def chat(data: ChatMessage):
             "project_id": data.project_id
         }
 
+def sanitize_path_param(param: str) -> str:
+    """Sanitize a path parameter to prevent path traversal."""
+    if not param or '/' in param or '\\' in param or param in ('.', '..'):
+        raise HTTPException(status_code=400, detail="Invalid path parameter")
+    return param
+
 def validate_path(path: Path):
     """Ensure the path is within the projects directory."""
     base_dir = Path("projects").resolve()
@@ -114,7 +120,8 @@ def validate_path(path: Path):
 @app.post("/project/create")
 async def create_project(data: ProjectCreate):
     """Create a new project folder structure."""
-    project_path = Path(f"projects/{data.name}")
+    safe_name = sanitize_path_param(data.name)
+    project_path = Path(f"projects/{safe_name}")
     validate_path(project_path)
     project_path.mkdir(parents=True, exist_ok=True)
     (project_path / "rules").mkdir(exist_ok=True)
@@ -148,7 +155,8 @@ async def list_projects():
 @app.get("/conversation/{project_id}")
 async def get_conversation(project_id: str):
     """Return saved conversation history for a project."""
-    convo_path = Path(f"projects/{project_id}/conversation.json")
+    safe_id = sanitize_path_param(project_id)
+    convo_path = Path(f"projects/{safe_id}/conversation.json")
     validate_path(convo_path)
     if not convo_path.exists():
         return {"messages": [], "step": "describing"}
@@ -170,7 +178,8 @@ async def clear_projects():
 @app.get("/project/{project_id}")
 async def get_project(project_id: str):
     """Get project status and config."""
-    config_path = Path(f"projects/{project_id}/config.json")
+    safe_id = sanitize_path_param(project_id)
+    config_path = Path(f"projects/{safe_id}/config.json")
     validate_path(config_path)
     if not config_path.exists():
         return {"error": "Project not found"}
@@ -190,7 +199,9 @@ async def test_api_key(data: ApiKeyTest):
 @app.get("/rule-file/{project_id}/{filename}")
 async def get_rule_file(project_id: str, filename: str):
     """Get the content of a specific rule file."""
-    file_path = Path(f"projects/{project_id}/rules/{filename}")
+    safe_id = sanitize_path_param(project_id)
+    safe_file = sanitize_path_param(filename)
+    file_path = Path(f"projects/{safe_id}/rules/{safe_file}")
     validate_path(file_path)
     if not file_path.exists():
         return {"content": None, "exists": False}
@@ -199,7 +210,8 @@ async def get_rule_file(project_id: str, filename: str):
 @app.get("/project-files/{project_id}")
 async def get_project_files(project_id: str):
     """List all files in a project directory."""
-    project_path = Path(f"projects/{project_id}")
+    safe_id = sanitize_path_param(project_id)
+    project_path = Path(f"projects/{safe_id}")
     validate_path(project_path)
     if not project_path.exists():
         return {"files": []}
@@ -279,7 +291,8 @@ async def build_frontend(data: BuildFrontend):
 @app.get("/frontend/{project_id}")
 async def get_frontend(project_id: str):
     """Get the generated frontend HTML."""
-    frontend_path = Path(f"projects/{project_id}/frontend/index.html")
+    safe_id = sanitize_path_param(project_id)
+    frontend_path = Path(f"projects/{safe_id}/frontend/index.html")
     validate_path(frontend_path)
     if not frontend_path.exists():
         return {"error": "Frontend not built yet"}
