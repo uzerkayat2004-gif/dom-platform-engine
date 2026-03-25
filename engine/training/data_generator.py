@@ -5,6 +5,7 @@ constrained by the project's rule files.
 """
 
 import json
+import aiofiles
 from pathlib import Path
 from typing import Callable, Optional, List
 from engine.primary_agent.providers import get_provider
@@ -80,9 +81,9 @@ Return ONLY the JSON array."""
             examples = self._get_fallback_examples()
         
         # Save as JSONL
-        with open(self.output_path, "w", encoding="utf-8") as f:
-            for ex in examples:
-                f.write(json.dumps(ex) + "\n")
+        async with aiofiles.open(self.output_path, "w", encoding="utf-8") as f:
+            content = "".join(json.dumps(ex) + "\n" for ex in examples)
+            await f.write(content)
         
         await self.broadcast({
             "type": "training_data_ready",
