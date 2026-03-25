@@ -60,7 +60,7 @@ const App = {
         if (window.__TAURI__) {
           await window.__TAURI__.core.invoke('minimize_window');
         }
-      } catch (err) { console.log('Minimize:', err); }
+      } catch (err) { }
     });
 
     maximize.addEventListener('click', async (e) => {
@@ -69,7 +69,7 @@ const App = {
         if (window.__TAURI__) {
           await window.__TAURI__.core.invoke('maximize_window');
         }
-      } catch (err) { console.log('Maximize:', err); }
+      } catch (err) { }
     });
 
     close.addEventListener('click', async (e) => {
@@ -78,7 +78,7 @@ const App = {
         if (window.__TAURI__) {
           await window.__TAURI__.core.invoke('close_window');
         }
-      } catch (err) { console.log('Close:', err); }
+      } catch (err) { }
     });
   },
 
