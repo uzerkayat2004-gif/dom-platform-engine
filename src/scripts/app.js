@@ -5,7 +5,16 @@
 
 const App = {
   state: 'welcome', // 'welcome' | 'active'
-  currentProject: null,
+  _currentProject: null,
+  get currentProject() {
+    return this._currentProject;
+  },
+  set currentProject(val) {
+    this._currentProject = val;
+    if (val) {
+      localStorage.setItem("dom_last_project", val);
+    }
+  },
   config: { provider: 'groq', apiKey: '' },
   apiBase: window.DOM_ENGINE_URL || 'http://127.0.0.1:8080',
   ws: null,
@@ -629,7 +638,12 @@ async function onAppStart() {
   
   const lastProject = localStorage.getItem('dom_last_project');
   if (lastProject) {
-      App.currentProject = lastProject;
+      const projectEl = document.querySelector(`.sidebar-project[data-id="${lastProject}"]`);
+      if (projectEl) {
+          projectEl.click();
+      } else {
+          App.currentProject = lastProject;
+      }
   }
 }
 
