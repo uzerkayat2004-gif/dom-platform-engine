@@ -18,6 +18,12 @@ const GlassBox = {
     const log = document.getElementById('glassbox-log');
     const now = time || new Date().toLocaleTimeString('en-US', { hour12: false });
 
+    // Check if it's a raw entry from DOM server (Fix 8)
+    if (type && typeof type === 'object' && type.full_entry) {
+        message = type;
+        type = message.is_blocked ? 'blocked' : (message.action_type || 'INFO').toLowerCase();
+    }
+
     const icons = {
       'blocked': '🔴',
       'passed': '✅',
@@ -37,7 +43,6 @@ const GlassBox = {
     const entry = document.createElement('div');
     entry.className = `glassbox-entry ${type}${type === 'blocked' ? ' flash' : ''}`;
     
-    // Check if it's a raw entry from DOM server (Fix 8)
     if (message && typeof message === 'object' && message.full_entry) {
         entry.innerHTML = `
           <span class="entry-time">[${now}]</span>
@@ -45,7 +50,6 @@ const GlassBox = {
           <span class="entry-type">${message.action_type || 'INFO'}</span>
           <span class="entry-message">${message.full_entry}</span>
         `;
-        if (message.is_blocked) type = 'blocked';
     } else {
         entry.innerHTML = `
           <span class="entry-time">[${now}]</span>
