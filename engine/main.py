@@ -12,6 +12,7 @@ import asyncio
 import json
 import shutil
 import threading
+import re
 from pathlib import Path
 from datetime import datetime
 # dom_server imported lazily inside /dom-server/start endpoint
@@ -223,6 +224,9 @@ async def get_rule_file(project_id: str, filename: str):
 @app.get("/project-files/{project_id}")
 async def get_project_files(project_id: str):
     """List all files in a project directory."""
+    if not re.match(r"^[a-zA-Z0-9_-]+$", project_id):
+        raise HTTPException(status_code=400, detail="Invalid project_id format")
+
     project_path = Path(f"projects/{project_id}")
     validate_path(project_path)
     if not project_path.exists():
