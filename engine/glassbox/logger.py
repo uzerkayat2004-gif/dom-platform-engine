@@ -4,6 +4,7 @@ Real-time activity logger for the DOM model.
 Every action, every rule check, every security decision — logged in plain English.
 """
 
+import asyncio
 import datetime
 from pathlib import Path
 from typing import Callable, Optional
@@ -40,9 +41,12 @@ class GlassBoxLogger:
         if rule_check:
             entry += f" — {rule_check}"
         
-        # Write to log file
-        with open(self.log_file, "a", encoding="utf-8") as f:
-            f.write(entry + "\n")
+        # Write to log file (non-blocking)
+        def _write():
+            with open(self.log_file, "a", encoding="utf-8") as f:
+                f.write(entry + "\n")
+
+        await asyncio.to_thread(_write)
         
         # Broadcast to UI in real time
         await self.broadcast({
