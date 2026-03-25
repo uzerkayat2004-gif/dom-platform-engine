@@ -10,6 +10,7 @@ from pydantic import BaseModel
 import uvicorn
 import asyncio
 import json
+import re
 import shutil
 import threading
 from pathlib import Path
@@ -114,6 +115,9 @@ def validate_path(path: Path):
 @app.post("/project/create")
 async def create_project(data: ProjectCreate):
     """Create a new project folder structure."""
+    if not re.match(r"^[a-zA-Z0-9 _-]+$", data.name):
+        raise HTTPException(status_code=400, detail="Invalid project name")
+
     project_path = Path(f"projects/{data.name}")
     validate_path(project_path)
     project_path.mkdir(parents=True, exist_ok=True)
