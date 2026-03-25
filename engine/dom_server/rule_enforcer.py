@@ -12,6 +12,12 @@ from engine.rules.generator import RuleGenerator
 
 class RuleEnforcer:
     
+    RE_PRICE = re.compile(r'(\d+)\s*rupees?')
+    RE_PRICE_LIMIT = re.compile(r'maximum single (?:item |transaction )?(?:price|value)[:\s]+(?:rs\.?)?(\s*)(\d+)', re.IGNORECASE)
+    RE_DISCOUNT = re.compile(r'(\d+)\s*(?:percent|%)')
+    RE_DISCOUNT_LIMIT = re.compile(r'maximum discount[^:]*:\s*(\d+)%', re.IGNORECASE)
+    RE_WORDS = re.compile(r'\b\w+\b')
+
     def __init__(self, project_id: str):
         self.project_id = project_id
         self.rule_gen = RuleGenerator(project_id)
@@ -24,6 +30,18 @@ class RuleEnforcer:
         self.limits_rules = rules.get("limits_md", "")
         self.behavior_rules = rules.get("behavior_md", "")
         self.skills_rules = rules.get("skills_md", "")
+
+        # Pre-calculate limits
+        limit_match = self.RE_PRICE_LIMIT.search(self.limits_rules)
+        self._price_limit = int(limit_match.group(2)) if limit_match else 10000
+
+        discount_limit_match = self.RE_DISCOUNT_LIMIT.search(
+            self.limits_rules + self.security_rules
+        )
+        self._discount_limit = int(discount_limit_match.group(1)) if discount_limit_match else 30
+
+        # Cache skill keywords
+        self._allowed_keywords = self._extract_skill_keywords()
     
     def check(self, instruction: str) -> dict:
         """
@@ -33,53 +51,37 @@ class RuleEnforcer:
         instruction_lower = instruction.lower()
         
         # Check price limits from limits.md
-        price_matches = re.findall(r'(\d+)\s*rupees?', instruction_lower)
+        price_matches = self.RE_PRICE.findall(instruction_lower)
         for price_str in price_matches:
             price = int(price_str)
-            # Extract limit from limits.md
-            limit_match = re.search(
-                r'maximum single (?:item |transaction )?(?:price|value)[:\s]+(?:rs\.?)?(\d+)',
-                self.limits_rules.lower()
-            )
-            limit = int(limit_match.group(1)) if limit_match else 10000
-            if price > limit:
+            if price > self._price_limit:
                 return {
                     "allowed": False,
-                    "reason": f"Item price Rs.{price} exceeds Rs.{limit:,} limit",
+                    "reason": f"Item price Rs.{price} exceeds Rs.{self._price_limit:,} limit",
                     "rule_file": "limits.md",
                     "rule_number": "Rule 1"
                 }
         
         # Check discount limits
-        discount_matches = re.findall(
-            r'(\d+)\s*(?:percent|%)',
-            instruction_lower
-        )
+        discount_matches = self.RE_DISCOUNT.findall(instruction_lower)
         is_discount = any(
             kw in instruction_lower
             for kw in ['discount', 'reduce', 'off', 'percent off']
         )
         if discount_matches and is_discount:
             discount = int(discount_matches[0])
-            # Extract limit from security or limits rules
-            discount_limit_match = re.search(
-                r'maximum discount[^:]*:\s*(\d+)%',
-                (self.limits_rules + self.security_rules).lower()
-            )
-            discount_limit = int(discount_limit_match.group(1)) if discount_limit_match else 30
-            if discount > discount_limit:
+            if discount > self._discount_limit:
                 return {
                     "allowed": False,
-                    "reason": f"{discount}% discount exceeds {discount_limit}% maximum",
+                    "reason": f"{discount}% discount exceeds {self._discount_limit}% maximum",
                     "rule_file": "security.md",
                     "rule_number": "Rule 2"
                 }
         
         # Check skill permissions — is this action in skills.md?
-        allowed_keywords = self._extract_skill_keywords()
-        action_words = re.findall(r'\b\w+\b', instruction_lower)
+        action_words = self.RE_WORDS.findall(instruction_lower)
         has_permission = any(
-            kw in instruction_lower for kw in allowed_keywords
+            kw in instruction_lower for kw in self._allowed_keywords
         )
         if not has_permission and len(instruction.split()) > 2:
             return {
@@ -114,7 +116,7 @@ class RuleEnforcer:
         ]
         keywords = list(default_keywords)
         for line in skill_lines:
-            words = re.findall(r'\b\w+\b', line)
+            words = self.RE_WORDS.findall(line)
             keywords.extend([w for w in words if len(w) > 3])
         
         return list(set(keywords))
